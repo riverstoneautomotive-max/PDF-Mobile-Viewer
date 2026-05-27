@@ -130,12 +130,6 @@ header{
     backdrop-filter:blur(14px);
 
     border-bottom:1px solid var(--border);
-
-    position:sticky;
-
-    top:0;
-
-    z-index:1000;
 }
 
 .header-btn{
@@ -227,19 +221,11 @@ button:hover{
 
 .font-row{
 
-    position:sticky;
-
-    top:92px;
-
-    z-index:999;
-
     display:flex;
 
     justify-content:flex-end;
 
     padding:12px 16px 0;
-
-    pointer-events:none;
 }
 
 .floating{
@@ -247,8 +233,6 @@ button:hover{
     display:none;
 
     position:relative;
-
-    pointer-events:auto;
 }
 
 .fab{
@@ -339,6 +323,8 @@ main{
     font-size:1rem;
 
     line-height:1.68;
+
+    word-break:break-word;
 }
 
 .smart-heading{
@@ -377,18 +363,22 @@ main{
     font-style:italic;
 }
 
-.inline-link{
+.smart-link{
 
     color:var(--accent-light);
 
     text-decoration:underline;
 
-    word-break:break-word;
+    text-decoration-thickness:1px;
+
+    text-underline-offset:2px;
+
+    overflow-wrap:anywhere;
 }
 
-.inline-link:hover{
+.smart-link:hover{
 
-    opacity:0.85;
+    color:#f0ddb0;
 }
 
 /* NOTES */
@@ -399,12 +389,6 @@ main{
 }
 
 .notes-header{
-
-    position:sticky;
-
-    top:0;
-
-    z-index:1000;
 
     padding:16px;
 
@@ -1329,58 +1313,159 @@ function isItalic(item){
 
 }
 
-/* SMART LINKS */
+/* LINK DETECTION */
 
-function createSmartHTML(text){
+function extractSmartLinks(text){
 
-    if(!text){
-        return '';
+    const matches = [];
+
+    const regex =
+        /(https?:\/\/|www\.)/gi;
+
+    let match;
+
+    while(
+        (match = regex.exec(text))
+        !== null
+    ){
+
+        const start =
+            match.index;
+
+        let end =
+            start;
+
+        let validCount = 0;
+
+        while(end < text.length){
+
+            const char =
+                text[end];
+
+            if(
+                char === ' '
+                ||
+                char === ')'
+                ||
+                char === ']'
+            ){
+
+                if(validCount >= 7){
+                    break;
+                }
+            }
+
+            if(
+                char !== ' '
+                &&
+                char !== '\n'
+                &&
+                char !== '\r'
+            ){
+
+                validCount++;
+            }
+
+            end++;
+
+        }
+
+        const raw =
+            text.slice(start,end)
+            .trim();
+
+        if(raw.length >= 7){
+
+            matches.push({
+
+                start,
+
+                end,
+
+                raw
+
+            });
+
+        }
+
     }
 
-    let html = text;
+    return matches;
 
-    const urlRegex =
-        /(?:https?:\/\/|www\.)[\s\S]{7,}??(?=[\s\)\]]|$)/gi;
+}
 
-    html =
-        html.replace(
-            urlRegex,
-            match=>{
+/* INLINE FORMAT */
 
-            let clean =
-                match.trim();
+function buildFormattedFragment(text){
 
-            clean =
-                clean.replace(
-                    /[.,;!?]+$/,
-                    ''
-                );
+    const fragment =
+        document.createDocumentFragment();
 
-            const href =
-                clean.startsWith('http')
-                ? clean
-                : 'https://' + clean;
+    const links =
+        extractSmartLinks(text);
 
-            return `
-                <a
-                    href="${href}"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="inline-link"
-                >
-                    ${clean}
-                </a>
-            `;
+    if(!links.length){
 
-        });
-
-    html =
-        html.replace(
-            /\*([^*\n]+)\*/g,
-            '<span class="inline-italic">$1</span>'
+        fragment.appendChild(
+            document.createTextNode(text)
         );
 
-    return html;
+        return fragment;
+
+    }
+
+    let cursor = 0;
+
+    links.forEach(link=>{
+
+        if(link.start > cursor){
+
+            fragment.appendChild(
+                document.createTextNode(
+                    text.slice(cursor,link.start)
+                )
+            );
+
+        }
+
+        const anchor =
+            document.createElement('a');
+
+        anchor.className =
+            'smart-link';
+
+        anchor.target =
+            '_blank';
+
+        anchor.rel =
+            'noopener noreferrer';
+
+        anchor.textContent =
+            link.raw;
+
+        anchor.href =
+            link.raw.startsWith('www.')
+            ? 'https://' + link.raw
+            : link.raw;
+
+        fragment.appendChild(anchor);
+
+        cursor =
+            link.end;
+
+    });
+
+    if(cursor < text.length){
+
+        fragment.appendChild(
+            document.createTextNode(
+                text.slice(cursor)
+            )
+        );
+
+    }
+
+    return fragment;
 
 }
 
@@ -1429,9 +1514,6 @@ function buildBlocks(
             ? 'heading'
             : 'paragraph';
 
-        const italic =
-            isItalic(item);
-
         const shouldBreak =
 
             !current
@@ -1450,7 +1532,7 @@ function buildBlocks(
 
                 type,
 
-                parts:[]
+                spans:[]
 
             };
 
@@ -1458,11 +1540,11 @@ function buildBlocks(
 
         }
 
-        current.parts.push({
+        current.spans.push({
 
             text,
 
-            italic
+            italic:isItalic(item)
 
         });
 
@@ -1491,69 +1573,64 @@ function renderBlocks(blocks){
     blocks.forEach(block=>{
 
         if(
-            !block.parts
-            ||
-            !block.parts.length
+            !block.spans.length
         ){
             return;
         }
 
-        let html = '';
+        const element =
+            block.type === 'heading'
+            ? document.createElement('h2')
+            : document.createElement('p');
 
-        block.parts.forEach(part=>{
+        element.className =
+            block.type === 'heading'
+            ? 'smart-heading'
+            : 'smart-paragraph';
 
-            let text =
-                createSmartHTML(
-                    part.text
+        block.spans.forEach(
+            (span,index)=>{
+
+            if(index > 0){
+
+                element.appendChild(
+                    document.createTextNode(' ')
                 );
-
-            if(part.italic){
-
-                text =
-                    `<span class="inline-italic">${text}</span>`;
 
             }
 
-            html +=
-                (
-                    html
-                    ? ' '
-                    : ''
-                ) + text;
+            const content =
+                buildFormattedFragment(
+                    span.text
+                );
+
+            if(span.italic){
+
+                const italic =
+                    document.createElement('span');
+
+                italic.className =
+                    'inline-italic';
+
+                italic.appendChild(content);
+
+                element.appendChild(
+                    italic
+                );
+
+            }else{
+
+                element.appendChild(
+                    content
+                );
+
+            }
 
         });
 
-        if(
-            block.type === 'heading'
-        ){
-
-            const h =
-                document.createElement('h2');
-
-            h.className =
-                'smart-heading';
-
-            h.innerHTML =
-                html;
-
-            wrapper.appendChild(h);
-
-        }
-
-        else{
-
-            const p =
-                document.createElement('p');
-
-            p.className =
-                'smart-paragraph';
-
-            p.innerHTML =
-                html;
-
-            wrapper.appendChild(p);
-
-        }
+        wrapper.appendChild(
+            element
+        );
 
     });
 
