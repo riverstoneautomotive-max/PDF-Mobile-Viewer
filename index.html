@@ -24,6 +24,8 @@
     rel="stylesheet"
 />
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
 <style>
 
 :root{
@@ -201,12 +203,7 @@ main{
 
     margin:0 auto;
 
-    padding:28px 35px 120px;
-}
-
-.article{
-
-    width:100%;
+    padding:24px 22px 120px;
 }
 
 /* DOCUMENT */
@@ -217,7 +214,7 @@ main{
 
     font-size:1rem;
 
-    line-height:1.72;
+    line-height:1.68;
 
     letter-spacing:0.01em;
 
@@ -234,20 +231,18 @@ main{
 
     line-height:1.14;
 
-    margin-top:3.5rem;
+    margin-top:3rem;
 
-    margin-bottom:1.6rem;
+    margin-bottom:1.3rem;
 
     font-weight:700;
-
-    color:var(--text);
 }
 
 /* PARAGRAPHS */
 
 .smart-paragraph{
 
-    margin:0 0 1.7rem;
+    margin:0 0 1.55rem;
 
     text-align:justify;
 
@@ -266,7 +261,7 @@ main{
 
     gap:14px;
 
-    margin:1.5rem 0 2rem;
+    margin:1.4rem 0 2rem;
 
     padding:16px 18px;
 
@@ -290,8 +285,6 @@ main{
 .smart-link:hover{
 
     background:#252822;
-
-    border-color:#505445;
 }
 
 .smart-link::after{
@@ -458,11 +451,6 @@ main{
 
 @media(max-width:700px){
 
-    main{
-
-        padding:24px 22px 120px;
-    }
-
     .smart-heading{
 
         font-size:1.65rem;
@@ -553,8 +541,7 @@ main{
 <main>
 
     <section
-        id="reader"
-        class="article">
+        id="reader">
 
         <div class="loading">
             Upload a PDF to begin.
@@ -564,12 +551,17 @@ main{
 
 </main>
 
-<script type="module">
+<script>
 
-import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs';
+/* PDF.JS */
+
+const pdfjsLib =
+    window['pdfjs-dist/build/pdf'];
 
 pdfjsLib.GlobalWorkerOptions.workerSrc =
-'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs';
+'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+/* ELEMENTS */
 
 const pdfFile =
     document.getElementById('pdfFile');
@@ -598,17 +590,22 @@ const fontPanel =
 const fontSizeDisplay =
     document.getElementById('fontSizeDisplay');
 
+/* FONT */
+
 let currentFontSize = 1.00;
 
 /* STORAGE */
 
-const DB_NAME = 'pdf-reader-db';
+const DB_NAME =
+    'pdf-reader-db';
 
-const STORE_NAME = 'pdf-store';
+const STORE_NAME =
+    'pdf-store';
 
-const LAST_PDF_KEY = 'last-pdf';
+const LAST_PDF_KEY =
+    'last-pdf';
 
-/* OPEN DATABASE */
+/* DATABASE */
 
 function openDatabase(){
 
@@ -748,7 +745,7 @@ function updateFont(){
         currentFontSize.toFixed(2) + 'x';
 }
 
-/* CLEAN */
+/* CLEAN TEXT */
 
 function cleanText(text){
 
@@ -931,7 +928,7 @@ function isBold(item){
     );
 }
 
-/* ALL CAPS */
+/* CAPS HEADINGS */
 
 function isAllCapsHeading(text){
 
@@ -996,7 +993,6 @@ function buildBlocks(
             Math.abs(y - lastY);
 
         const isNewLine =
-
             verticalGap > 5;
 
         const allCapsHeading =
@@ -1089,7 +1085,7 @@ function renderBlocks(blocks){
             return;
         }
 
-        /* LINK */
+        /* LINKS */
 
         if(
             extractUrl(text)
@@ -1104,7 +1100,7 @@ function renderBlocks(blocks){
             return;
         }
 
-        /* HEADING */
+        /* HEADINGS */
 
         if(
             block.type === 'heading'
@@ -1207,7 +1203,7 @@ async function processPdf(file){
         ){
 
             setStatus(
-                \`Reading page ${pageNumber} of ${pdf.numPages}\`
+                `Reading page ${pageNumber} of ${pdf.numPages}`
             );
 
             const page =
@@ -1222,17 +1218,17 @@ async function processPdf(file){
                 ...content.items
             );
 
-            const progress =
+            setProgress(
                 (
                     pageNumber /
                     pdf.numPages
-                ) * 100;
+                ) * 100
+            );
 
-            setProgress(progress);
         }
 
         setStatus(
-            'Analyzing document structure...'
+            'Analyzing document...'
         );
 
         const dominantSize =
@@ -1256,7 +1252,9 @@ async function processPdf(file){
 
         setProgress(100);
 
-        setStatus('Complete');
+        setStatus(
+            'Complete'
+        );
 
         fontControls.style.display =
             'block';
@@ -1271,9 +1269,11 @@ async function processPdf(file){
             </div>
         `;
 
-        setProgress(0);
+        setStatus(
+            'Error'
+        );
 
-        setStatus('Error');
+        setProgress(0);
     }
 
 }
@@ -1282,7 +1282,7 @@ async function processPdf(file){
 
 processBtn.addEventListener(
     'click',
-    async ()=>{
+    ()=>{
 
     const file =
         pdfFile.files[0];
@@ -1291,7 +1291,7 @@ processBtn.addEventListener(
 
 });
 
-/* AUTO LOAD LAST PDF */
+/* AUTO LOAD SAVED PDF */
 
 window.addEventListener(
     'load',
@@ -1311,15 +1311,12 @@ window.addEventListener(
             await processPdf(
                 savedPdf
             );
+
         }
 
     }catch(error){
 
-        console.error(
-            'Failed to load saved PDF',
-            error
-        );
-
+        console.error(error);
     }
 
 });
