@@ -345,6 +345,25 @@ main{
     text-align:justify;
 }
 
+.smart-link{
+
+    color:var(--accent-light);
+
+    text-decoration:none;
+
+    word-break:break-word;
+}
+
+.smart-link:hover{
+
+    text-decoration:underline;
+}
+
+.smart-italic{
+
+    font-style:italic;
+}
+
 .loading{
 
     text-align:center;
@@ -749,8 +768,6 @@ main{
             class="panel"
             id="readerPanel">
 
-<!-- HEADER -->
-
 <header>
 
     <div class="toolbar">
@@ -774,6 +791,7 @@ main{
     </div>
 
 </header>
+
             <div class="font-row">
 
                 <div
@@ -885,6 +903,7 @@ main{
     </div>
 
 </div>
+
 <!-- IMPORT MODAL -->
 
 <div
@@ -936,7 +955,7 @@ main{
 </div>
 
 <script>
-    
+
 /* PDF */
 
 const pdfjsLib =
@@ -976,7 +995,7 @@ const libraryOverlay =
 
 const libraryList =
     document.getElementById('libraryList');
-    
+
 const importBtn =
     document.getElementById('importBtn');
 
@@ -1187,6 +1206,10 @@ function cleanText(text){
 
     return text
 
+        /* remove isolated numbers */
+
+        .replace(/\s\d+\s/g,' ')
+
         .replace(/\s+/g,' ')
 
         .replace(/-\s+/g,'')
@@ -1267,6 +1290,46 @@ function isBold(item){
 
 }
 
+/* ITALIC */
+
+function isItalic(item){
+
+    const font =
+        item.fontName
+        ? item.fontName.toLowerCase()
+        : '';
+
+    return (
+
+        font.includes('italic')
+
+        ||
+
+        font.includes('oblique')
+
+    );
+
+}
+
+/* HEADING DETECTION */
+
+function looksLikeHeading(text){
+
+    const trimmed =
+        text.trim();
+
+    if(!trimmed){
+        return false;
+    }
+
+    const noPunctuation =
+        !/[.!?:;"')\]]$/.test(
+            trimmed
+        );
+
+    return noPunctuation;
+}
+
 /* BUILD BLOCKS */
 
 function buildBlocks(
@@ -1302,15 +1365,33 @@ function buildBlocks(
             &&
             Math.abs(y-lastY);
 
-        const heading =
-            fontSize > dominantSize
-            ||
+        let type =
+            'paragraph';
+
+        const largerThanBody =
+            fontSize > dominantSize;
+
+        const bold =
             isBold(item);
 
-        const type =
-            heading
-            ? 'heading'
-            : 'paragraph';
+        const headingLike =
+            looksLikeHeading(text);
+
+        if(
+            largerThanBody
+            ||
+            bold
+            ||
+            (
+                gap > 28
+                &&
+                headingLike
+            )
+        ){
+
+            type = 'heading';
+
+        }
 
         const shouldBreak =
 
@@ -1330,7 +1411,7 @@ function buildBlocks(
 
                 type,
 
-                text:''
+                fragments:[]
 
             };
 
@@ -1338,12 +1419,13 @@ function buildBlocks(
 
         }
 
-        current.text +=
-            (
-                current.text
-                ? ' '
-                : ''
-            ) + text;
+        current.fragments.push({
+
+            text,
+
+            italic:isItalic(item)
+
+        });
 
         lastY = y;
 
@@ -1352,6 +1434,94 @@ function buildBlocks(
     });
 
     return blocks;
+
+}
+
+/* INLINE FORMATTER */
+
+function appendFormattedContent(
+    element,
+    fragments
+){
+
+    fragments.forEach(
+        (fragment,index)=>{
+
+        const parts =
+            fragment.text.split(
+                /(https:\/\/[^\s]+)/g
+            );
+
+        parts.forEach(part=>{
+
+            if(!part){
+                return;
+            }
+
+            const isLink =
+                /^https:\/\/[^\s]+$/
+                .test(part);
+
+            let node;
+
+            if(isLink){
+
+                node =
+                    document.createElement('a');
+
+                node.href =
+                    part;
+
+                node.target =
+                    '_blank';
+
+                node.rel =
+                    'noopener noreferrer';
+
+                node.className =
+                    'smart-link';
+
+                node.textContent =
+                    part;
+
+            }else{
+
+                if(fragment.italic){
+
+                    node =
+                        document.createElement('em');
+
+                    node.className =
+                        'smart-italic';
+
+                }else{
+
+                    node =
+                        document.createElement('span');
+
+                }
+
+                node.textContent =
+                    part;
+
+            }
+
+            element.appendChild(node);
+
+        });
+
+        if(
+            index <
+            fragments.length - 1
+        ){
+
+            element.appendChild(
+                document.createTextNode(' ')
+            );
+
+        }
+
+    });
 
 }
 
@@ -1369,10 +1539,16 @@ function renderBlocks(blocks){
 
     blocks.forEach(block=>{
 
-        const text =
-            block.text.trim();
+        const combinedText =
+            block.fragments
+            .map(
+                fragment=>
+                fragment.text
+            )
+            .join(' ')
+            .trim();
 
-        if(!text){
+        if(!combinedText){
             return;
         }
 
@@ -1386,8 +1562,10 @@ function renderBlocks(blocks){
             h.className =
                 'smart-heading';
 
-            h.textContent =
-                text;
+            appendFormattedContent(
+                h,
+                block.fragments
+            );
 
             wrapper.appendChild(h);
 
@@ -1401,8 +1579,10 @@ function renderBlocks(blocks){
             p.className =
                 'smart-paragraph';
 
-            p.textContent =
-                text;
+            appendFormattedContent(
+                p,
+                block.fragments
+            );
 
             wrapper.appendChild(p);
 
@@ -1634,8 +1814,6 @@ function createNotebook(
             totalHeight / 40
         );
 
-    /* RULING */
-
     for(
         let i=0;
         i<lineCount;
@@ -1654,8 +1832,6 @@ function createNotebook(
         rulingLayer.appendChild(line);
 
     }
-
-    /* CELLS */
 
     for(
         let i=0;
@@ -1697,8 +1873,6 @@ function createNotebook(
             updateCoveredCells();
 
         });
-
-        /* OPEN */
 
         input.addEventListener(
             'click',
@@ -1747,8 +1921,6 @@ function createNotebook(
 
         });
 
-        /* INPUT */
-
         input.addEventListener(
             'input',
             ()=>{
@@ -1785,57 +1957,6 @@ function createNotebook(
 
 async function processRecord(record){
 
-    let visualProgress = 0;
-
-    let targetProgress = 0;
-
-    let progressAnimation = null;
-
-    function animateProgress(){
-
-        cancelAnimationFrame(progressAnimation);
-
-        const tick = ()=>{
-
-            const diff =
-                targetProgress - visualProgress;
-
-            if(Math.abs(diff) < 0.15){
-
-                visualProgress = targetProgress;
-
-            }else{
-
-                visualProgress += diff * 0.08;
-
-            }
-
-            progressBar.style.width =
-                visualProgress + '%';
-
-            if(visualProgress < 100){
-
-                progressAnimation =
-                    requestAnimationFrame(tick);
-
-            }
-
-        };
-
-        tick();
-
-    }
-
-    function setTargetProgress(value){
-
-        targetProgress =
-            Math.max(
-                targetProgress,
-                Math.min(value,100)
-            );
-
-    }
-
     try{
 
         currentPdfId =
@@ -1852,71 +1973,20 @@ async function processRecord(record){
             </div>
         `;
 
-        visualProgress = 0;
-
-        targetProgress = 2;
-
-        animateProgress();
-
-        /* FILE READ */
-
-        const bufferPromise =
-            record.file.arrayBuffer();
-
-        /* FAKE EARLY MOVEMENT */
-
-        const preloadInterval =
-            setInterval(()=>{
-
-            if(targetProgress < 18){
-
-                targetProgress += 1.2;
-
-            }
-
-        },120);
+        setProgress(0);
 
         const buffer =
-            await bufferPromise;
-
-        clearInterval(preloadInterval);
-
-        setTargetProgress(20);
-
-        /* PDF LOAD */
+            await record.file.arrayBuffer();
 
         const loadingTask =
             pdfjsLib.getDocument({
                 data:buffer
             });
 
-        loadingTask.onProgress =
-            progress=>{
-
-            if(!progress.total){
-                return;
-            }
-
-            const percent =
-                (
-                    progress.loaded /
-                    progress.total
-                ) * 18;
-
-            setTargetProgress(
-                20 + percent
-            );
-
-        };
-
         const pdf =
             await loadingTask.promise;
 
-        setTargetProgress(40);
-
         const allItems = [];
-
-        /* PAGE EXTRACTION */
 
         for(
             let page=1;
@@ -1927,24 +1997,6 @@ async function processRecord(record){
             const pdfPage =
                 await pdf.getPage(page);
 
-            /* MID-PAGE SMOOTHING */
-
-            const pageStart =
-                40 +
-                (
-                    (
-                        page - 1
-                    ) / pdf.numPages
-                ) * 50;
-
-            const pageEnd =
-                40 +
-                (
-                    page / pdf.numPages
-                ) * 50;
-
-            setTargetProgress(pageStart);
-
             const content =
                 await pdfPage.getTextContent();
 
@@ -1952,26 +2004,19 @@ async function processRecord(record){
                 ...content.items
             );
 
-            setTargetProgress(pageEnd);
-
-            /* ALLOW UI TO UPDATE */
-
-            await new Promise(resolve=>
-                requestAnimationFrame(resolve)
+            setProgress(
+                (
+                    page /
+                    pdf.numPages
+                ) * 100
             );
 
         }
-
-        setTargetProgress(92);
-
-        /* BLOCK BUILD */
 
         const dominant =
             findDominantFontSize(
                 allItems
             );
-
-        setTargetProgress(95);
 
         const blocks =
             buildBlocks(
@@ -1979,34 +2024,19 @@ async function processRecord(record){
                 dominant
             );
 
-        setTargetProgress(97);
-
         renderBlocks(blocks);
 
-        await new Promise(resolve=>
-            requestAnimationFrame(resolve)
-        );
+        requestAnimationFrame(()=>{
 
-        createNotebook(
-            reader.scrollHeight,
-            record.notes || {}
-        );
+            createNotebook(
+                reader.scrollHeight,
+                record.notes || {}
+            );
+
+        });
 
         fontControls.style.display =
             'block';
-
-        setTargetProgress(100);
-
-        /* CLEAN FINISH */
-
-        setTimeout(()=>{
-
-            visualProgress = 100;
-
-            progressBar.style.width =
-                '100%';
-
-        },120);
 
     }catch(error){
 
@@ -2033,18 +2063,13 @@ async function processRecord(record){
 
         }
 
-        cancelAnimationFrame(
-            progressAnimation
-        );
-
-        progressBar.style.width =
-            '0%';
-
         reader.innerHTML = `
             <div class="loading">
                 Corrupted PDF removed.
             </div>
         `;
+
+        setProgress(0);
 
     }
 
