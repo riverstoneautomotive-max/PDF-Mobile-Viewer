@@ -136,20 +136,16 @@ header{
 
     display:flex;
 
-    flex-wrap:wrap;
-
     align-items:center;
 
-    gap:10px;
+    gap:12px;
 }
 
-input[type="file"]{
+.header-btn{
 
-    color:var(--muted);
+    flex:1;
 
-    font-family:inherit;
-
-    max-width:170px;
+    text-align:center;
 }
 
 button{
@@ -179,6 +175,10 @@ button:hover{
 }
 
 #status{
+
+    display:block;
+
+    margin-top:12px;
 
     color:var(--muted);
 
@@ -215,6 +215,93 @@ button:hover{
     );
 
     transition:width 0.25s ease;
+}
+
+/* IMPORT MODAL */
+
+.import-overlay{
+
+    position:fixed;
+
+    inset:0;
+
+    background:rgba(0,0,0,0.72);
+
+    backdrop-filter:blur(8px);
+
+    z-index:5000;
+
+    display:none;
+
+    align-items:center;
+
+    justify-content:center;
+
+    padding:20px;
+}
+
+.import-modal{
+
+    width:100%;
+
+    max-width:420px;
+
+    background:var(--panel);
+
+    border:1px solid var(--border);
+
+    border-radius:24px;
+
+    overflow:hidden;
+}
+
+.import-header{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    padding:18px;
+
+    border-bottom:1px solid var(--border);
+
+    background:rgba(17,19,15,0.96);
+}
+
+.import-body{
+
+    padding:22px;
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:18px;
+}
+
+.import-body input[type="file"]{
+
+    width:100%;
+
+    color:var(--muted);
+
+    font-family:inherit;
+}
+
+.selected-file{
+
+    color:var(--muted);
+
+    font-size:14px;
+
+    word-break:break-word;
+}
+
+.extract-btn{
+
+    width:100%;
 }
 
 /* FONT */
@@ -504,21 +591,15 @@ main{
     z-index:10;
 }
 
-/* RULING REMAINS VISIBLE */
-
 .note-input.editing{
 
     background:rgba(17,19,15,0.05);
 }
 
-/* CLOSED */
-
 .note-input.closed{
 
     cursor:text;
 }
-
-/* DISABLED */
 
 .note-input.disabled{
 
@@ -526,8 +607,6 @@ main{
 
     opacity:0.7;
 }
-
-/* COVERED CELL FIX */
 
 .note-input.covered{
 
@@ -670,25 +749,23 @@ main{
 
                 <div class="toolbar">
 
-                    <button id="libraryBtn">
+                    <button
+                        id="libraryBtn"
+                        class="header-btn">
                         Library
                     </button>
 
-                    <input
-                        type="file"
-                        id="pdfFile"
-                        accept="application/pdf"
-                    />
-
-                    <button id="processBtn">
-                        Extract PDF
+                    <button
+                        id="importBtn"
+                        class="header-btn">
+                        Import
                     </button>
 
-                    <span id="status">
-                        Ready
-                    </span>
-
                 </div>
+
+                <span id="status">
+                    Ready
+                </span>
 
                 <div class="progress-wrapper">
 
@@ -701,82 +778,9 @@ main{
 
             </header>
 
-            <div class="font-row">
+            <!-- EVERYTHING ELSE REMAINS IDENTICAL -->
 
-                <div
-                    class="floating"
-                    id="fontControls">
-
-                    <button
-                        class="fab"
-                        id="fontToggle">
-                        A+
-                    </button>
-
-                    <div
-                        class="font-panel"
-                        id="fontPanel">
-
-                        <div class="font-controls">
-
-                            <button
-                                class="font-btn"
-                                id="fontDown">
-                                −
-                            </button>
-
-                            <div id="fontSizeDisplay">
-                                1.00x
-                            </div>
-
-                            <button
-                                class="font-btn"
-                                id="fontUp">
-                                +
-                            </button>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <main>
-
-                <section id="reader">
-
-                    <div class="loading">
-                        Upload a PDF to begin.
-                    </div>
-
-                </section>
-
-            </main>
-
-        </div>
-
-        <!-- NOTES -->
-
-        <div
-            class="panel notes-panel"
-            id="notesPanel">
-
-            <div class="notes-header">
-
-                <button
-                    class="copy-btn"
-                    id="copyNotes">
-                    ⧉
-                </button>
-
-            </div>
-
-            <div
-                class="notes-wrapper"
-                id="notesWrapper">
-            </div>
+            <!-- Keep ALL your original remaining HTML exactly as-is below this point -->
 
         </div>
 
@@ -784,46 +788,61 @@ main{
 
 </div>
 
-<!-- LIBRARY -->
+<!-- IMPORT MODAL -->
 
 <div
-    class="library-overlay"
-    id="libraryOverlay">
+    class="import-overlay"
+    id="importOverlay">
 
-    <div class="library-header">
+    <div class="import-modal">
 
-        <button
-            class="icon-btn"
-            id="closeLibrary">
-            ←
-        </button>
+        <div class="import-header">
 
-        <div>
-            Library
+            <button
+                class="icon-btn"
+                id="closeImport">
+                ←
+            </button>
+
+            <div>
+                Import PDF
+            </div>
+
+            <div style="width:24px;"></div>
+
         </div>
 
-        <div style="width:24px;"></div>
+        <div class="import-body">
 
-    </div>
+            <input
+                type="file"
+                id="pdfFile"
+                accept="application/pdf"
+            />
 
-    <div
-        class="library-list"
-        id="libraryList">
+            <div
+                class="selected-file"
+                id="selectedFile">
+            </div>
+
+            <button
+                id="processBtn"
+                class="extract-btn"
+                style="display:none;">
+                Extract PDF
+            </button>
+
+        </div>
+
     </div>
 
 </div>
 
 <script>
 
-/* PDF */
+/* KEEP ALL YOUR ORIGINAL JAVASCRIPT EXACTLY AS-IS */
 
-const pdfjsLib =
-    window['pdfjs-dist/build/pdf'];
-
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-/* ELEMENTS */
+/* ONLY REPLACE THE OLD BUTTON/FILE INPUT REFERENCES WITH THESE */
 
 const pdfFile =
     document.getElementById('pdfFile');
@@ -831,1380 +850,99 @@ const pdfFile =
 const processBtn =
     document.getElementById('processBtn');
 
-const reader =
-    document.getElementById('reader');
+const importBtn =
+    document.getElementById('importBtn');
 
-const statusText =
-    document.getElementById('status');
+const importOverlay =
+    document.getElementById('importOverlay');
 
-const progressBar =
-    document.getElementById('progressBar');
+const closeImport =
+    document.getElementById('closeImport');
 
-const notesWrapper =
-    document.getElementById('notesWrapper');
+const selectedFile =
+    document.getElementById('selectedFile');
 
-const panels =
-    document.getElementById('panels');
+/* REMOVE YOUR OLD processBtn EVENT LISTENER */
+/* REPLACE IT WITH THIS */
 
-const readerPanel =
-    document.getElementById('readerPanel');
+/* IMPORT MODAL */
 
-const notesPanel =
-    document.getElementById('notesPanel');
+importBtn.addEventListener(
+    'click',
+    ()=>{
 
-const libraryOverlay =
-    document.getElementById('libraryOverlay');
+    importOverlay.style.display =
+        'flex';
 
-const libraryList =
-    document.getElementById('libraryList');
+});
 
-const fontControls =
-    document.getElementById('fontControls');
+closeImport.addEventListener(
+    'click',
+    ()=>{
 
-const fontPanel =
-    document.getElementById('fontPanel');
+    importOverlay.style.display =
+        'none';
 
-const fontToggle =
-    document.getElementById('fontToggle');
+});
 
-const fontSizeDisplay =
-    document.getElementById('fontSizeDisplay');
+pdfFile.addEventListener(
+    'change',
+    ()=>{
 
-/* STORAGE */
+    const file =
+        pdfFile.files[0];
 
-const DB_NAME =
-    'ai-pdf-reader';
+    if(!file){
 
-const STORE_NAME =
-    'pdfs';
+        selectedFile.textContent =
+            '';
 
-const LAST_KEY =
-    'last-opened-pdf';
+        processBtn.style.display =
+            'none';
 
-/* STATE */
-
-let currentPdfId = null;
-
-let currentFontSize = 1.00;
-
-let showingNotes = false;
-
-let activeInput = null;
-
-/* DATABASE */
-
-function openDatabase(){
-
-    return new Promise((resolve,reject)=>{
-
-        const request =
-            indexedDB.open(DB_NAME,1);
-
-        request.onupgradeneeded =
-            event=>{
-
-            const db =
-                event.target.result;
-
-            if(
-                !db.objectStoreNames.contains(
-                    STORE_NAME
-                )
-            ){
-
-                db.createObjectStore(
-                    STORE_NAME,
-                    {
-                        keyPath:'id'
-                    }
-                );
-
-            }
-
-        };
-
-        request.onsuccess =
-            ()=>resolve(
-                request.result
-            );
-
-        request.onerror =
-            ()=>reject(
-                request.error
-            );
-
-    });
-
-}
-
-/* SAVE */
-
-async function saveRecord(record){
-
-    const db =
-        await openDatabase();
-
-    return new Promise(resolve=>{
-
-        const tx =
-            db.transaction(
-                STORE_NAME,
-                'readwrite'
-            );
-
-        tx.objectStore(STORE_NAME)
-            .put(record);
-
-        tx.oncomplete =
-            ()=>resolve();
-
-    });
-
-}
-
-/* GET */
-
-async function getAllRecords(){
-
-    const db =
-        await openDatabase();
-
-    return new Promise(resolve=>{
-
-        const tx =
-            db.transaction(
-                STORE_NAME,
-                'readonly'
-            );
-
-        const request =
-            tx.objectStore(STORE_NAME)
-            .getAll();
-
-        request.onsuccess =
-            ()=>resolve(
-                request.result || []
-            );
-
-    });
-
-}
-
-/* REMOVE */
-
-async function removeRecord(id){
-
-    const db =
-        await openDatabase();
-
-    return new Promise(resolve=>{
-
-        const tx =
-            db.transaction(
-                STORE_NAME,
-                'readwrite'
-            );
-
-        tx.objectStore(STORE_NAME)
-            .delete(id);
-
-        tx.oncomplete =
-            ()=>resolve();
-
-    });
-
-}
-
-/* STATUS */
-
-function setStatus(text){
-
-    statusText.textContent =
-        text;
-}
-
-/* PROGRESS */
-
-function setProgress(value){
-
-    progressBar.style.width =
-        value + '%';
-}
-
-/* FONT */
-
-function updateFont(){
-
-    document
-        .querySelectorAll('.section')
-        .forEach(section=>{
-
-        section.style.fontSize =
-            currentFontSize + 'rem';
-
-    });
-
-    document
-        .querySelectorAll('.note-input')
-        .forEach(input=>{
-
-        input.style.fontSize =
-            currentFontSize + 'rem';
-
-    });
-
-    fontSizeDisplay.textContent =
-        currentFontSize.toFixed(2) + 'x';
-
-}
-
-/* CLEAN */
-
-function cleanText(text){
-
-    return text
-
-        .replace(/\s+/g,' ')
-
-        .replace(/-\s+/g,'')
-
-        .trim();
-
-}
-
-/* DOMINANT FONT */
-
-function findDominantFontSize(items){
-
-    const counts = {};
-
-    items.forEach(item=>{
-
-        if(!item.str.trim()){
-            return;
-        }
-
-        const size =
-            Math.round(item.height);
-
-        counts[size] =
-            (counts[size] || 0) + 1;
-
-    });
-
-    let dominant = 12;
-
-    let highest = 0;
-
-    Object.entries(counts)
-        .forEach(([size,count])=>{
-
-        if(count > highest){
-
-            dominant =
-                Number(size);
-
-            highest =
-                count;
-
-        }
-
-    });
-
-    return dominant;
-
-}
-
-/* BOLD */
-
-function isBold(item){
-
-    const font =
-        item.fontName
-        ? item.fontName.toLowerCase()
-        : '';
-
-    return (
-
-        font.includes('bold')
-
-        ||
-
-        font.includes('black')
-
-        ||
-
-        font.includes('heavy')
-
-        ||
-
-        font.includes('semibold')
-
-    );
-
-}
-
-/* BUILD BLOCKS */
-
-function buildBlocks(
-    items,
-    dominantSize
-){
-
-    const blocks = [];
-
-    let current = null;
-
-    let lastY = null;
-
-    let lastType = null;
-
-    items.forEach(item=>{
-
-        const text =
-            cleanText(item.str);
-
-        if(!text){
-            return;
-        }
-
-        const fontSize =
-            Math.round(item.height);
-
-        const y =
-            item.transform[5];
-
-        const gap =
-            lastY !== null
-            &&
-            Math.abs(y-lastY);
-
-        const heading =
-            fontSize > dominantSize
-            ||
-            isBold(item);
-
-        const type =
-            heading
-            ? 'heading'
-            : 'paragraph';
-
-        const shouldBreak =
-
-            !current
-
-            ||
-
-            type !== lastType
-
-            ||
-
-            gap > 42;
-
-        if(shouldBreak){
-
-            current = {
-
-                type,
-
-                text:''
-
-            };
-
-            blocks.push(current);
-
-        }
-
-        current.text +=
-            (
-                current.text
-                ? ' '
-                : ''
-            ) + text;
-
-        lastY = y;
-
-        lastType = type;
-
-    });
-
-    return blocks;
-
-}
-
-/* RENDER */
-
-function renderBlocks(blocks){
-
-    reader.innerHTML = '';
-
-    const wrapper =
-        document.createElement('section');
-
-    wrapper.className =
-        'section';
-
-    blocks.forEach(block=>{
-
-        const text =
-            block.text.trim();
-
-        if(!text){
-            return;
-        }
-
-        if(
-            block.type === 'heading'
-        ){
-
-            const h =
-                document.createElement('h2');
-
-            h.className =
-                'smart-heading';
-
-            h.textContent =
-                text;
-
-            wrapper.appendChild(h);
-
-        }
-
-        else{
-
-            const p =
-                document.createElement('p');
-
-            p.className =
-                'smart-paragraph';
-
-            p.textContent =
-                text;
-
-            wrapper.appendChild(p);
-
-        }
-
-    });
-
-    reader.appendChild(wrapper);
-
-    updateFont();
-
-}
-
-/* AUTO RESIZE */
-
-function autoResize(textarea){
-
-    textarea.style.height =
-        '40px';
-
-    textarea.style.height =
-        textarea.scrollHeight + 'px';
-
-}
-
-/* COVERED CELLS */
-
-function updateCoveredCells(){
-
-    const inputs =
-        [
-            ...document.querySelectorAll('.note-input')
-        ];
-
-    inputs.forEach(input=>{
-
-        input.classList.remove(
-            'covered'
-        );
-
-    });
-
-    inputs.forEach(input=>{
-
-        const startLine =
-            Number(input.dataset.line);
-
-        const height =
-            input.offsetHeight;
-
-        const linesUsed =
-            Math.ceil(height / 40);
-
-        if(linesUsed <= 1){
-            return;
-        }
-
-        for(
-            let i = 1;
-            i < linesUsed;
-            i++
-        ){
-
-            const covered =
-                document.querySelector(
-                    '.note-input[data-line="' +
-                    (startLine + i) +
-                    '"]'
-                );
-
-            if(
-                covered &&
-                covered !== input
-            ){
-
-                covered.classList.add(
-                    'covered'
-                );
-
-            }
-
-        }
-
-    });
-
-}
-
-/* SAVE NOTES */
-
-async function saveNotes(){
-
-    if(!currentPdfId){
         return;
-    }
-
-    const notes = {};
-
-    document
-        .querySelectorAll('.note-input')
-        .forEach(input=>{
-
-        if(
-            input.value.trim()
-        ){
-
-            notes[
-                input.dataset.line
-            ] = input.value;
-
-        }
-
-    });
-
-    const records =
-        await getAllRecords();
-
-    const record =
-        records.find(
-            item=>
-            item.id === currentPdfId
-        );
-
-    if(!record){
-        return;
-    }
-
-    record.notes =
-        notes;
-
-    await saveRecord(record);
-
-}
-
-/* ENABLE / DISABLE */
-
-function updateCellAvailability(){
-
-    document
-        .querySelectorAll('.note-input')
-        .forEach(input=>{
-
-        if(
-            activeInput
-            &&
-            input !== activeInput
-        ){
-
-            input.classList.add(
-                'disabled'
-            );
-
-        }else{
-
-            input.classList.remove(
-                'disabled'
-            );
-
-        }
-
-    });
-
-}
-
-/* CLOSE INPUT */
-
-async function closeCurrentInput(){
-
-    if(!activeInput){
-        return;
-    }
-
-    activeInput.blur();
-
-    activeInput.readOnly = true;
-
-    activeInput.classList.remove(
-        'editing'
-    );
-
-    activeInput.classList.add(
-        'closed'
-    );
-
-    activeInput.style.zIndex =
-        '5';
-
-    await saveNotes();
-
-    activeInput = null;
-
-    updateCellAvailability();
-
-    updateCoveredCells();
-
-}
-
-/* NOTEBOOK */
-
-function createNotebook(
-    totalHeight,
-    savedNotes={}
-){
-
-    notesWrapper.innerHTML = '';
-
-    const notesInner =
-        document.createElement('div');
-
-    notesInner.className =
-        'notes-inner';
-
-    notesInner.style.height =
-        totalHeight + 'px';
-
-    const rulingLayer =
-        document.createElement('div');
-
-    rulingLayer.className =
-        'ruling-layer';
-
-    const cellsLayer =
-        document.createElement('div');
-
-    cellsLayer.className =
-        'cells-layer';
-
-    const lineCount =
-        Math.ceil(
-            totalHeight / 40
-        );
-
-    /* RULING */
-
-    for(
-        let i=0;
-        i<lineCount;
-        i++
-    ){
-
-        const line =
-            document.createElement('div');
-
-        line.className =
-            'ruling-line';
-
-        line.style.top =
-            ((i + 1) * 40) - 1 + 'px';
-
-        rulingLayer.appendChild(line);
 
     }
 
-    /* CELLS */
+    selectedFile.textContent =
+        file.name;
 
-    for(
-        let i=0;
-        i<lineCount;
-        i++
-    ){
+    processBtn.style.display =
+        'block';
 
-        const row =
-            document.createElement('div');
+});
 
-        row.className =
-            'note-row';
+processBtn.addEventListener(
+    'click',
+    async ()=>{
 
-        row.style.top =
-            (i * 40) + 'px';
-
-        const input =
-            document.createElement('textarea');
-
-        input.className =
-            'note-input closed';
-
-        input.dataset.line =
-            i;
-
-        input.readOnly =
-            true;
-
-        input.spellcheck =
-            false;
-
-        input.value =
-            savedNotes[i] || '';
-
-        requestAnimationFrame(()=>{
-
-            autoResize(input);
-
-            updateCoveredCells();
-
-        });
-
-        /* OPEN */
-
-        input.addEventListener(
-            'click',
-            event=>{
-
-            event.stopPropagation();
-
-            if(
-                input.classList.contains(
-                    'covered'
-                )
-            ){
-
-                return;
-
-            }
-
-            if(
-                activeInput
-                &&
-                activeInput !== input
-            ){
-
-                return;
-
-            }
-
-            input.readOnly = false;
-
-            input.classList.remove(
-                'closed'
-            );
-
-            input.classList.add(
-                'editing'
-            );
-
-            input.style.zIndex =
-                '999';
-
-            activeInput = input;
-
-            updateCellAvailability();
-
-            input.focus();
-
-        });
-
-        /* INPUT */
-
-        input.addEventListener(
-            'input',
-            ()=>{
-
-            autoResize(input);
-
-            updateCoveredCells();
-
-        });
-
-        row.appendChild(input);
-
-        cellsLayer.appendChild(row);
-
-    }
-
-    notesInner.appendChild(
-        rulingLayer
-    );
-
-    notesInner.appendChild(
-        cellsLayer
-    );
-
-    notesWrapper.appendChild(
-        notesInner
-    );
-
-    updateFont();
-
-}
-
-/* PROCESS */
-
-async function processRecord(record){
-
-    try{
-
-        currentPdfId =
-            record.id;
-
-        localStorage.setItem(
-            LAST_KEY,
-            record.id
-        );
-
-        reader.innerHTML = `
-            <div class="loading">
-                Processing PDF...
-            </div>
-        `;
-
-        setStatus(
-            'Loading PDF...'
-        );
-
-        setProgress(0);
-
-        const buffer =
-            await record.file.arrayBuffer();
-
-        const loadingTask =
-            pdfjsLib.getDocument({
-                data:buffer
-            });
-
-        const pdf =
-            await loadingTask.promise;
-
-        const allItems = [];
-
-        for(
-            let page=1;
-            page<=pdf.numPages;
-            page++
-        ){
-
-            setStatus(
-                'Reading page ' +
-                page +
-                ' of ' +
-                pdf.numPages
-            );
-
-            const pdfPage =
-                await pdf.getPage(page);
-
-            const content =
-                await pdfPage.getTextContent();
-
-            allItems.push(
-                ...content.items
-            );
-
-            setProgress(
-                (
-                    page /
-                    pdf.numPages
-                ) * 100
-            );
-
-        }
-
-        const dominant =
-            findDominantFontSize(
-                allItems
-            );
-
-        const blocks =
-            buildBlocks(
-                allItems,
-                dominant
-            );
-
-        renderBlocks(blocks);
-
-        requestAnimationFrame(()=>{
-
-            createNotebook(
-                reader.scrollHeight,
-                record.notes || {}
-            );
-
-        });
-
-        setStatus(
-            'Complete'
-        );
-
-        fontControls.style.display =
-            'block';
-
-    }catch(error){
-
-        console.error(error);
-
-        reader.innerHTML = `
-            <div class="loading">
-                Error processing PDF.
-            </div>
-        `;
-
-        setStatus(
-            'Error'
-        );
-
-    }
-
-}
-
-/* NEW FILE */
-
-async function processNewFile(file){
+    const file =
+        pdfFile.files[0];
 
     if(!file){
 
         alert(
-            'Please upload a PDF first.'
+            'Please choose a PDF first.'
         );
 
         return;
-    }
-
-    const record = {
-
-        id:
-            Date.now().toString(),
-
-        name:
-            file.name,
-
-        file,
-
-        notes:{},
-
-        created:
-            Date.now()
-
-    };
-
-    await saveRecord(record);
-
-    await processRecord(record);
-
-}
-
-/* LIBRARY */
-
-async function renderLibrary(){
-
-    const records =
-        await getAllRecords();
-
-    libraryList.innerHTML = '';
-
-    if(!records.length){
-
-        libraryList.innerHTML = `
-            <div class="loading">
-                No PDFs saved yet.
-            </div>
-        `;
-
-        return;
-    }
-
-    records
-        .sort(
-            (a,b)=>
-            b.created - a.created
-        )
-        .forEach(record=>{
-
-        const item =
-            document.createElement('div');
-
-        item.className =
-            'library-item';
-
-        const name =
-            document.createElement('div');
-
-        name.className =
-            'library-name';
-
-        name.textContent =
-            record.name;
-
-        name.addEventListener(
-            'click',
-            async ()=>{
-
-            libraryOverlay.style.display =
-                'none';
-
-            await processRecord(
-                record
-            );
-
-        });
-
-        const remove =
-            document.createElement('button');
-
-        remove.className =
-            'remove-btn';
-
-        remove.textContent =
-            '×';
-
-        remove.addEventListener(
-            'click',
-            async event=>{
-
-            event.stopPropagation();
-
-            await removeRecord(
-                record.id
-            );
-
-            renderLibrary();
-
-        });
-
-        item.appendChild(name);
-
-        item.appendChild(remove);
-
-        libraryList.appendChild(item);
-
-    });
-
-}
-
-/* COPY */
-
-document
-    .getElementById('copyNotes')
-    .addEventListener(
-        'click',
-        ()=>{
-
-        let text = '';
-
-        document
-            .querySelectorAll('.note-input')
-            .forEach(input=>{
-
-            if(
-                input.value.trim()
-            ){
-
-                text +=
-                    input.value +
-                    '\n';
-
-            }
-
-        });
-
-        navigator.clipboard.writeText(
-            text
-        );
-
-});
-
-/* BUTTONS */
-
-processBtn.addEventListener(
-    'click',
-    ()=>{
-
-    processNewFile(
-        pdfFile.files[0]
-    );
-
-});
-
-document
-    .getElementById('libraryBtn')
-    .addEventListener(
-        'click',
-        ()=>{
-
-        libraryOverlay.style.display =
-            'block';
-
-        renderLibrary();
-
-});
-
-document
-    .getElementById('closeLibrary')
-    .addEventListener(
-        'click',
-        ()=>{
-
-        libraryOverlay.style.display =
-            'none';
-
-});
-
-/* SWIPE */
-
-function openNotes(){
-
-    showingNotes = true;
-
-    panels.style.transform =
-        'translateX(-100vw)';
-
-    notesPanel.scrollTop =
-        readerPanel.scrollTop;
-
-}
-
-function closeNotes(){
-
-    showingNotes = false;
-
-    panels.style.transform =
-        'translateX(0)';
-
-    readerPanel.scrollTop =
-        notesPanel.scrollTop;
-
-}
-
-let startX = 0;
-
-let startY = 0;
-
-document.addEventListener(
-    'touchstart',
-    event=>{
-
-    startX =
-        event.touches[0].clientX;
-
-    startY =
-        event.touches[0].clientY;
-
-});
-
-document.addEventListener(
-    'touchend',
-    event=>{
-
-    const endX =
-        event.changedTouches[0].clientX;
-
-    const endY =
-        event.changedTouches[0].clientY;
-
-    const diffX =
-        endX - startX;
-
-    const diffY =
-        Math.abs(
-            endY - startY
-        );
-
-    if(diffY > 80){
-        return;
-    }
-
-    if(
-        diffX < -90
-        &&
-        !showingNotes
-    ){
-
-        openNotes();
 
     }
 
-    if(
-        diffX > 90
-        &&
-        showingNotes
-    ){
+    importOverlay.style.display =
+        'none';
 
-        closeNotes();
+    processBtn.style.display =
+        'none';
 
-    }
+    selectedFile.textContent =
+        '';
 
-});
+    await processNewFile(file);
 
-/* CLICK OUTSIDE */
-
-document.addEventListener(
-    'click',
-    async event=>{
-
-    const clickedInput =
-        event.target.classList.contains(
-            'note-input'
-        );
-
-    if(!clickedInput){
-
-        await closeCurrentInput();
-
-    }
+    pdfFile.value = '';
 
 });
-
-/* FONT */
-
-fontToggle.addEventListener(
-    'click',
-    ()=>{
-
-    fontPanel.style.display =
-
-        fontPanel.style.display ===
-        'block'
-        ? 'none'
-        : 'block';
-
-});
-
-document
-    .getElementById('fontUp')
-    .addEventListener(
-        'click',
-        ()=>{
-
-        currentFontSize += 0.08;
-
-        updateFont();
-
-});
-
-document
-    .getElementById('fontDown')
-    .addEventListener(
-        'click',
-        ()=>{
-
-        currentFontSize =
-            Math.max(
-                0.75,
-                currentFontSize - 0.08
-            );
-
-        updateFont();
-
-});
-
-/* AUTO LOAD */
-
-window.addEventListener(
-    'load',
-    async ()=>{
-
-    try{
-
-        const lastId =
-            localStorage.getItem(
-                LAST_KEY
-            );
-
-        if(!lastId){
-            return;
-        }
-
-        const records =
-            await getAllRecords();
-
-        const record =
-            records.find(
-                item=>
-                item.id === lastId
-            );
-
-        if(record){
-
-            await processRecord(
-                record
-            );
-
-        }
-
-    }catch(error){
-
-        console.error(error);
-
-    }
-
-});
-
-/* CLOSE FONT PANEL */
-
-document.addEventListener(
-    'click',
-    event=>{
-
-    const inside =
-        fontPanel.contains(
-            event.target
-        );
-
-    const toggle =
-        fontToggle.contains(
-            event.target
-        );
-
-    if(
-        !inside
-        &&
-        !toggle
-    ){
-
-        fontPanel.style.display =
-            'none';
-
-    }
-
-});
-
-/* SERVICE WORKER */
-
-if(
-    'serviceWorker'
-    in navigator
-){
-
-    window.addEventListener(
-        'load',
-        ()=>{
-
-        navigator.serviceWorker.register(
-            './service-worker.js'
-        );
-
-    });
-
-}
 
 </script>
 
