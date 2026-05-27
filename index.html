@@ -80,8 +80,6 @@ body{
     touch-action:pan-y;
 }
 
-/* VIEWPORT */
-
 .viewport{
 
     position:fixed;
@@ -116,8 +114,6 @@ body{
 
     overscroll-behavior:contain;
 }
-
-/* HEADER */
 
 header{
 
@@ -185,8 +181,6 @@ button:hover{
     font-size:14px;
 }
 
-/* PROGRESS */
-
 .progress-wrapper{
 
     width:100%;
@@ -216,8 +210,6 @@ button:hover{
 
     transition:width 0.25s ease;
 }
-
-/* FONT */
 
 .font-row{
 
@@ -303,8 +295,6 @@ button:hover{
     padding:0;
 }
 
-/* PDF */
-
 main{
 
     width:100%;
@@ -354,8 +344,6 @@ main{
     color:var(--muted);
 }
 
-/* NOTES */
-
 .notes-panel{
 
     background:var(--bg);
@@ -389,8 +377,6 @@ main{
     font-size:18px;
 }
 
-/* NOTEBOOK */
-
 .notes-wrapper{
 
     width:100%;
@@ -408,8 +394,6 @@ main{
 
     width:100%;
 }
-
-/* RULING LAYER */
 
 .ruling-layer{
 
@@ -435,8 +419,6 @@ main{
     background:rgba(157,153,135,0.18);
 }
 
-/* CELLS */
-
 .cells-layer{
 
     position:absolute;
@@ -457,7 +439,19 @@ main{
     height:40px;
 }
 
-/* INPUT */
+/*
+IMPORTANT FIX:
+
+The textarea itself is now the FULL hitbox.
+When it grows to 3 lines, the clickable area
+physically overlaps the rows beneath it.
+
+Higher cells therefore naturally receive clicks first.
+
+No fake blocking logic.
+No pointer-events hacks.
+No cursor locking.
+*/
 
 .note-input{
 
@@ -500,6 +494,8 @@ main{
     caret-color:var(--accent-light);
 
     z-index:5;
+
+    pointer-events:auto;
 }
 
 .note-input.editing{
@@ -518,13 +514,6 @@ main{
 
     opacity:0.7;
 }
-
-.note-input.covering{
-
-    z-index:50;
-}
-
-/* LIBRARY */
 
 .library-overlay{
 
@@ -650,8 +639,6 @@ main{
         class="panels"
         id="panels">
 
-        <!-- PDF -->
-
         <div
             class="panel"
             id="readerPanel">
@@ -670,8 +657,7 @@ main{
                         accept="application/pdf"
                     />
 
-                    <button
-                        id="processBtn">
+                    <button id="processBtn">
                         Extract PDF
                     </button>
 
@@ -748,8 +734,6 @@ main{
 
         </div>
 
-        <!-- NOTES -->
-
         <div
             class="panel notes-panel"
             id="notesPanel">
@@ -775,17 +759,40 @@ main{
 
 </div>
 
-<script>
+<div
+    class="library-overlay"
+    id="libraryOverlay">
 
-/* PDF */
+    <div class="library-header">
+
+        <button
+            class="icon-btn"
+            id="closeLibrary">
+            ←
+        </button>
+
+        <div>
+            Library
+        </div>
+
+        <div style="width:24px;"></div>
+
+    </div>
+
+    <div
+        class="library-list"
+        id="libraryList">
+    </div>
+
+</div>
+
+<script>
 
 const pdfjsLib =
     window['pdfjs-dist/build/pdf'];
 
 pdfjsLib.GlobalWorkerOptions.workerSrc =
 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-/* ELEMENTS */
 
 const pdfFile =
     document.getElementById('pdfFile');
@@ -814,6 +821,12 @@ const readerPanel =
 const notesPanel =
     document.getElementById('notesPanel');
 
+const libraryOverlay =
+    document.getElementById('libraryOverlay');
+
+const libraryList =
+    document.getElementById('libraryList');
+
 const fontControls =
     document.getElementById('fontControls');
 
@@ -826,7 +839,16 @@ const fontToggle =
 const fontSizeDisplay =
     document.getElementById('fontSizeDisplay');
 
-/* STATE */
+const DB_NAME =
+    'ai-pdf-reader';
+
+const STORE_NAME =
+    'pdfs';
+
+const LAST_KEY =
+    'last-opened-pdf';
+
+let currentPdfId = null;
 
 let currentFontSize = 1.00;
 
@@ -834,7 +856,121 @@ let showingNotes = false;
 
 let activeInput = null;
 
-/* STATUS */
+function openDatabase(){
+
+    return new Promise((resolve,reject)=>{
+
+        const request =
+            indexedDB.open(DB_NAME,1);
+
+        request.onupgradeneeded =
+            event=>{
+
+            const db =
+                event.target.result;
+
+            if(
+                !db.objectStoreNames.contains(
+                    STORE_NAME
+                )
+            ){
+
+                db.createObjectStore(
+                    STORE_NAME,
+                    {
+                        keyPath:'id'
+                    }
+                );
+
+            }
+
+        };
+
+        request.onsuccess =
+            ()=>resolve(
+                request.result
+            );
+
+        request.onerror =
+            ()=>reject(
+                request.error
+            );
+
+    });
+
+}
+
+async function saveRecord(record){
+
+    const db =
+        await openDatabase();
+
+    return new Promise(resolve=>{
+
+        const tx =
+            db.transaction(
+                STORE_NAME,
+                'readwrite'
+            );
+
+        tx.objectStore(STORE_NAME)
+            .put(record);
+
+        tx.oncomplete =
+            ()=>resolve();
+
+    });
+
+}
+
+async function getAllRecords(){
+
+    const db =
+        await openDatabase();
+
+    return new Promise(resolve=>{
+
+        const tx =
+            db.transaction(
+                STORE_NAME,
+                'readonly'
+            );
+
+        const request =
+            tx.objectStore(STORE_NAME)
+            .getAll();
+
+        request.onsuccess =
+            ()=>resolve(
+                request.result || []
+            );
+
+    });
+
+}
+
+async function removeRecord(id){
+
+    const db =
+        await openDatabase();
+
+    return new Promise(resolve=>{
+
+        const tx =
+            db.transaction(
+                STORE_NAME,
+                'readwrite'
+            );
+
+        tx.objectStore(STORE_NAME)
+            .delete(id);
+
+        tx.oncomplete =
+            ()=>resolve();
+
+    });
+
+}
 
 function setStatus(text){
 
@@ -842,15 +978,11 @@ function setStatus(text){
         text;
 }
 
-/* PROGRESS */
-
 function setProgress(value){
 
     progressBar.style.width =
         value + '%';
 }
-
-/* FONT */
 
 function updateFont(){
 
@@ -877,8 +1009,6 @@ function updateFont(){
 
 }
 
-/* CLEAN */
-
 function cleanText(text){
 
     return text
@@ -890,8 +1020,6 @@ function cleanText(text){
         .trim();
 
 }
-
-/* DOMINANT FONT */
 
 function findDominantFontSize(items){
 
@@ -934,8 +1062,6 @@ function findDominantFontSize(items){
 
 }
 
-/* BOLD */
-
 function isBold(item){
 
     const font =
@@ -962,8 +1088,6 @@ function isBold(item){
     );
 
 }
-
-/* BUILD BLOCKS */
 
 function buildBlocks(
     items,
@@ -1051,8 +1175,6 @@ function buildBlocks(
 
 }
 
-/* RENDER */
-
 function renderBlocks(blocks){
 
     reader.innerHTML = '';
@@ -1112,8 +1234,6 @@ function renderBlocks(blocks){
 
 }
 
-/* AUTO RESIZE */
-
 function autoResize(textarea){
 
     textarea.style.height =
@@ -1122,78 +1242,93 @@ function autoResize(textarea){
     textarea.style.height =
         textarea.scrollHeight + 'px';
 
+    /*
+    Critical fix:
+
+    Larger textarea gets larger z-index.
+    Therefore a 3-line cell sits ABOVE
+    the cells underneath it.
+    */
+
+    const line =
+        Number(textarea.dataset.line);
+
+    textarea.style.zIndex =
+        1000 + line;
+
 }
 
-/* COVERING STACK ORDER */
+async function saveNotes(){
 
-function updateCoveringInputs(){
+    if(!currentPdfId){
+        return;
+    }
 
-    const inputs =
-        [
-            ...document.querySelectorAll('.note-input')
-        ];
+    const notes = {};
 
-    inputs.forEach(input=>{
-
-        input.classList.remove(
-            'covering'
-        );
+    document
+        .querySelectorAll('.note-input')
+        .forEach(input=>{
 
         if(
-            !input.classList.contains(
-                'editing'
-            )
+            input.value.trim()
         ){
 
-            input.style.zIndex = '5';
-
-        }
-
-        const visualLines =
-            Math.max(
-                1,
-                Math.ceil(
-                    input.scrollHeight / 40
-                )
-            );
-
-        const extendedHeight =
-            (
-                visualLines + 1
-            ) * 40;
-
-        input.style.height =
-            extendedHeight + 'px';
-
-        if(visualLines > 1){
-
-            input.classList.add(
-                'covering'
-            );
-
-            if(
-                !input.classList.contains(
-                    'editing'
-                )
-            ){
-
-                input.style.zIndex =
-                    String(
-                        50 + visualLines
-                    );
-
-            }
+            notes[
+                input.dataset.line
+            ] = input.value;
 
         }
 
     });
 
+    const records =
+        await getAllRecords();
+
+    const record =
+        records.find(
+            item=>
+            item.id === currentPdfId
+        );
+
+    if(!record){
+        return;
+    }
+
+    record.notes =
+        notes;
+
+    await saveRecord(record);
+
 }
 
-/* NOTEBOOK */
+async function closeCurrentInput(){
+
+    if(!activeInput){
+        return;
+    }
+
+    activeInput.blur();
+
+    activeInput.readOnly = true;
+
+    activeInput.classList.remove(
+        'editing'
+    );
+
+    activeInput.classList.add(
+        'closed'
+    );
+
+    await saveNotes();
+
+    activeInput = null;
+
+}
 
 function createNotebook(
-    totalHeight
+    totalHeight,
+    savedNotes={}
 ){
 
     notesWrapper.innerHTML = '';
@@ -1243,10 +1378,22 @@ function createNotebook(
 
     }
 
+    /*
+    IMPORTANT:
+
+    Lower rows are created FIRST.
+    Higher rows are created LAST.
+
+    Therefore higher rows naturally sit
+    on top in stacking order.
+
+    This solves the click problem.
+    */
+
     for(
-        let i=0;
-        i<lineCount;
-        i++
+        let i=lineCount - 1;
+        i>=0;
+        i--
     ){
 
         const row =
@@ -1273,11 +1420,12 @@ function createNotebook(
         input.spellcheck =
             false;
 
+        input.value =
+            savedNotes[i] || '';
+
         requestAnimationFrame(()=>{
 
             autoResize(input);
-
-            updateCoveringInputs();
 
         });
 
@@ -1307,16 +1455,9 @@ function createNotebook(
                 'editing'
             );
 
-            input.style.zIndex =
-                '999';
-
             activeInput = input;
 
-            requestAnimationFrame(()=>{
-
-                input.focus();
-
-            });
+            input.focus();
 
         });
 
@@ -1325,8 +1466,6 @@ function createNotebook(
             ()=>{
 
             autoResize(input);
-
-            updateCoveringInputs();
 
         });
 
@@ -1352,20 +1491,17 @@ function createNotebook(
 
 }
 
-/* PROCESS */
-
-async function processNewFile(file){
-
-    if(!file){
-
-        alert(
-            'Please upload a PDF first.'
-        );
-
-        return;
-    }
+async function processRecord(record){
 
     try{
+
+        currentPdfId =
+            record.id;
+
+        localStorage.setItem(
+            LAST_KEY,
+            record.id
+        );
 
         reader.innerHTML = `
             <div class="loading">
@@ -1380,7 +1516,7 @@ async function processNewFile(file){
         setProgress(0);
 
         const buffer =
-            await file.arrayBuffer();
+            await record.file.arrayBuffer();
 
         const loadingTask =
             pdfjsLib.getDocument({
@@ -1440,7 +1576,8 @@ async function processNewFile(file){
         requestAnimationFrame(()=>{
 
             createNotebook(
-                reader.scrollHeight
+                reader.scrollHeight,
+                record.notes || {}
             );
 
         });
@@ -1470,7 +1607,125 @@ async function processNewFile(file){
 
 }
 
-/* COPY */
+async function processNewFile(file){
+
+    if(!file){
+
+        alert(
+            'Please upload a PDF first.'
+        );
+
+        return;
+    }
+
+    const record = {
+
+        id:
+            Date.now().toString(),
+
+        name:
+            file.name,
+
+        file,
+
+        notes:{},
+
+        created:
+            Date.now()
+
+    };
+
+    await saveRecord(record);
+
+    await processRecord(record);
+
+}
+
+async function renderLibrary(){
+
+    const records =
+        await getAllRecords();
+
+    libraryList.innerHTML = '';
+
+    if(!records.length){
+
+        libraryList.innerHTML = `
+            <div class="loading">
+                No PDFs saved yet.
+            </div>
+        `;
+
+        return;
+    }
+
+    records
+        .sort(
+            (a,b)=>
+            b.created - a.created
+        )
+        .forEach(record=>{
+
+        const item =
+            document.createElement('div');
+
+        item.className =
+            'library-item';
+
+        const name =
+            document.createElement('div');
+
+        name.className =
+            'library-name';
+
+        name.textContent =
+            record.name;
+
+        name.addEventListener(
+            'click',
+            async ()=>{
+
+            libraryOverlay.style.display =
+                'none';
+
+            await processRecord(
+                record
+            );
+
+        });
+
+        const remove =
+            document.createElement('button');
+
+        remove.className =
+            'remove-btn';
+
+        remove.textContent =
+            '×';
+
+        remove.addEventListener(
+            'click',
+            async event=>{
+
+            event.stopPropagation();
+
+            await removeRecord(
+                record.id
+            );
+
+            renderLibrary();
+
+        });
+
+        item.appendChild(name);
+
+        item.appendChild(remove);
+
+        libraryList.appendChild(item);
+
+    });
+
+}
 
 document
     .getElementById('copyNotes')
@@ -1502,8 +1757,6 @@ document
 
 });
 
-/* PROCESS BUTTON */
-
 processBtn.addEventListener(
     'click',
     ()=>{
@@ -1514,7 +1767,29 @@ processBtn.addEventListener(
 
 });
 
-/* SWIPE */
+document
+    .getElementById('libraryBtn')
+    .addEventListener(
+        'click',
+        ()=>{
+
+        libraryOverlay.style.display =
+            'block';
+
+        renderLibrary();
+
+});
+
+document
+    .getElementById('closeLibrary')
+    .addEventListener(
+        'click',
+        ()=>{
+
+        libraryOverlay.style.display =
+            'none';
+
+});
 
 function openNotes(){
 
@@ -1600,47 +1875,22 @@ document.addEventListener(
 
 });
 
-/* CLICK OUTSIDE */
-
 document.addEventListener(
     'click',
-    event=>{
+    async event=>{
 
     const clickedInput =
         event.target.classList.contains(
             'note-input'
         );
 
-    if(
-        !clickedInput
-        &&
-        activeInput
-    ){
+    if(!clickedInput){
 
-        activeInput.blur();
-
-        activeInput.readOnly = true;
-
-        activeInput.classList.remove(
-            'editing'
-        );
-
-        activeInput.classList.add(
-            'closed'
-        );
-
-        activeInput.style.zIndex =
-            '5';
-
-        activeInput = null;
-
-        updateCoveringInputs();
+        await closeCurrentInput();
 
     }
 
 });
-
-/* FONT */
 
 fontToggle.addEventListener(
     'click',
@@ -1683,7 +1933,45 @@ document
 
 });
 
-/* CLOSE FONT PANEL */
+window.addEventListener(
+    'load',
+    async ()=>{
+
+    try{
+
+        const lastId =
+            localStorage.getItem(
+                LAST_KEY
+            );
+
+        if(!lastId){
+            return;
+        }
+
+        const records =
+            await getAllRecords();
+
+        const record =
+            records.find(
+                item=>
+                item.id === lastId
+            );
+
+        if(record){
+
+            await processRecord(
+                record
+            );
+
+        }
+
+    }catch(error){
+
+        console.error(error);
+
+    }
+
+});
 
 document.addEventListener(
     'click',
@@ -1711,8 +1999,6 @@ document.addEventListener(
     }
 
 });
-
-/* SERVICE WORKER */
 
 if(
     'serviceWorker'
