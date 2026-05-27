@@ -2226,17 +2226,11 @@ async function extractPdfData(file){
             dominant
         );
 
-    return {
-
-        dominant,
-
-        blocks
-
-    };
+    return blocks;
 
 }
 
-/* PROCESS SAVED */
+/* PROCESS */
 
 async function processRecord(record){
 
@@ -2252,23 +2246,11 @@ async function processRecord(record){
 
         reader.innerHTML = `
             <div class="loading">
-                Loading extracted text...
+                Loading Document...
             </div>
         `;
 
         setProgress(0);
-
-        if(
-            !record.blocks
-            ||
-            !Array.isArray(record.blocks)
-        ){
-
-            throw new Error(
-                'Missing extracted text data.'
-            );
-
-        }
 
         renderBlocks(
             record.blocks
@@ -2283,10 +2265,10 @@ async function processRecord(record){
 
         });
 
-        setProgress(100);
-
         fontControls.style.display =
             'block';
+
+        setProgress(100);
 
     }catch(error){
 
@@ -2315,7 +2297,7 @@ async function processRecord(record){
 
         reader.innerHTML = `
             <div class="loading">
-                Corrupted PDF removed.
+                Corrupted document removed.
             </div>
         `;
 
@@ -2338,54 +2320,37 @@ async function processNewFile(file){
         return;
     }
 
-    try{
+    reader.innerHTML = `
+        <div class="loading">
+            Processing PDF...
+        </div>
+    `;
 
-        reader.innerHTML = `
-            <div class="loading">
-                Extracting PDF...
-            </div>
-        `;
+    setProgress(0);
 
-        setProgress(0);
+    const blocks =
+        await extractPdfData(file);
 
-        const extracted =
-            await extractPdfData(file);
+    const record = {
 
-        const record = {
+        id:
+            Date.now().toString(),
 
-            id:
-                Date.now().toString(),
+        name:
+            file.name,
 
-            name:
-                file.name,
+        blocks,
 
-            blocks:
-                extracted.blocks,
+        notes:{},
 
-            notes:{},
+        created:
+            Date.now()
 
-            created:
-                Date.now()
+    };
 
-        };
+    await saveRecord(record);
 
-        await saveRecord(record);
-
-        await processRecord(record);
-
-    }catch(error){
-
-        console.error(error);
-
-        reader.innerHTML = `
-            <div class="loading">
-                Failed to process PDF.
-            </div>
-        `;
-
-        setProgress(0);
-
-    }
+    await processRecord(record);
 
 }
 
