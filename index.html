@@ -1410,8 +1410,20 @@ function buildBlocks(
 
     items.forEach(item=>{
 
+        const rawText =
+            item.str || '';
+
+        const leadingSpaces =
+            (
+                rawText.match(/^\s+/)
+                || ['']
+            )[0].length;
+
+        const indented =
+            leadingSpaces >= 2;
+
         const text =
-            cleanText(item.str);
+            cleanText(rawText);
 
         if(!text){
             return;
@@ -1448,7 +1460,11 @@ function buildBlocks(
 
             ||
 
-            gap > 42;
+            gap > 42
+
+            ||
+
+            indented;
 
         if(shouldBreak){
 
