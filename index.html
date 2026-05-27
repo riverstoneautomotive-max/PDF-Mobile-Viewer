@@ -1280,76 +1280,194 @@ function buildBlocks(
 
     let lastY = null;
 
+    let lastX = null;
+
     let lastType = null;
 
-    items.forEach(item=>{
+const xPositions =
+    items.map(
+        item => item.transform[4]
+    );
 
-        const text =
-            cleanText(item.str);
+const averageX =
+    xPositions.reduce(
+        (a,b)=>a+b,
+        0
+    ) / xPositions.length;
 
-        if(!text){
-            return;
-        }
+const leftColumn = [];
+const rightColumn = [];
 
-        const fontSize =
-            Math.round(item.height);
+items.forEach(item=>{
 
-        const y =
-            item.transform[5];
+    const x = item.transform[4];
 
-        const gap =
-            lastY !== null
+    if(x < averageX){
+
+        leftColumn.push(item);
+
+    }else{
+
+        rightColumn.push(item);
+
+    }
+
+});
+
+    const orderedItems = [
+
+    ...leftColumn.sort(
+        (a,b)=>
+        b.transform[5] - a.transform[5]
+    ),
+
+    ...rightColumn.sort(
+        (a,b)=>
+        b.transform[5] - a.transform[5]
+    )
+
+];
+
+orderedItems.forEach(item=>{
+
+    const x =
+        item.transform[4];
+
+    const y =
+        item.transform[5];
+
+    item.x = x;
+    item.y = y;
+
+    const pageHeight =
+    item.pageHeight || 792;
+
+const topMargin =
+    pageHeight * 0.08;
+
+const bottomMargin =
+    pageHeight * 0.08;
+
+/* REMOVE HEADER */
+
+if(y > pageHeight - topMargin){
+    return;
+}
+
+/* REMOVE FOOTER */
+
+if(y < bottomMargin){
+    return;
+}
+
+    const text =
+        cleanText(item.str);
+
+    if(!text){
+        return;
+    }
+
+    const fontSize =
+        Math.round(item.height || 12);
+
+    const gap =
+        lastY !== null
+        &&
+        Math.abs(y-lastY);
+
+    const heading =
+
+        (
+            fontSize >=
+            dominantSize * 1.25
+        )
+
+        ||
+
+        (
+            isBold(item)
             &&
-            Math.abs(y-lastY);
+            text.length < 120
+        );
 
-        const heading =
-            fontSize > dominantSize
-            ||
-            isBold(item);
+    const type =
+        heading
+        ? 'heading'
+        : 'paragraph';
 
-        const type =
-            heading
-            ? 'heading'
-            : 'paragraph';
+    const indentChange =
+        lastX !== null &&
+        Math.abs(item.x - lastX) > 30;
 
-        const shouldBreak =
+    const paragraphGap =
+        gap > (fontSize * 1.4);
 
-            !current
+    const sentenceEnded =
+        current &&
+        /[.!?]$/.test(
+            current.text.trim()
+        );
 
-            ||
+    const shouldBreak =
 
-            type !== lastType
+        !current
 
-            ||
+        ||
 
-            gap > 42;
+        type !== lastType
 
-        if(shouldBreak){
+        ||
 
-            current = {
+        paragraphGap
 
-                type,
+        ||
 
-                text:''
+        (
+            indentChange &&
+            sentenceEnded
+        );
 
-            };
+    if(shouldBreak){
 
-            blocks.push(current);
+        current = {
 
-        }
+            type,
+
+            text:''
+
+        };
+
+        blocks.push(current);
+
+    }
+
+    if(!current.text){
+
+        current.text = text;
+
+    }else{
+
+        const noSpaceBefore =
+            /^[.,!?;:%)]/.test(text);
+
+        const noSpaceAfter =
+            /[(]$/.test(current.text);
 
         current.text +=
             (
-                current.text
-                ? ' '
-                : ''
+                noSpaceBefore || noSpaceAfter
+                ? ''
+                : ' '
             ) + text;
+    }
 
-        lastY = y;
+    lastY = y;
 
-        lastType = type;
+    lastX = item.x;
 
-    });
+    lastType = type;
+
+});
 
     return blocks;
 
@@ -1823,14 +1941,37 @@ async function processRecord(record){
         ){
 
             const pdfPage =
-                await pdf.getPage(page);
+    await pdf.getPage(page);
 
-            const content =
-                await pdfPage.getTextContent();
+const viewport =
+    pdfPage.getViewport({ scale:1 });
 
-            allItems.push(
-                ...content.items
-            );
+const pageHeight =
+    viewport.height;
+
+const content =
+    await pdfPage.getTextContent();
+
+            const normalizedItems =
+    content.items.map(item=>({
+
+        ...item,
+
+        x:item.transform[4],
+
+        y:item.transform[5],
+
+        width:item.width,
+
+        height:item.height,
+
+        pageHeight
+
+}));
+
+allItems.push(
+    ...normalizedItems
+);
 
             setProgress(
                 (
