@@ -1329,10 +1329,8 @@ function updateCoveredCells(){
             input.offsetHeight;
 
         const coveredLines =
-            Math.floor(
-                (height - 1) / 40
-            );
-
+            Math.ceil
+                (height / 40) - 1
         if(coveredLines <= 1){
             return;
         }
