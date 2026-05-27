@@ -608,6 +608,14 @@ main{
     border-radius:0 12px 12px 0;
 
     overflow:visible;
+
+    clip-path:polygon(
+        0 0,
+        calc(100% - 34px) 0,
+        100% 50%,
+        calc(100% - 34px) 100%,
+        0 100%
+    );
 }
 
 .bookmark.open{
@@ -615,7 +623,7 @@ main{
     transform:translateX(0);
 }
 
-/* SUBTLE FABRIC LIGHTING */
+/* FABRIC LIGHTING */
 
 .bookmark::before{
 
@@ -632,33 +640,6 @@ main{
             rgba(255,255,255,0.04) 20%,
             rgba(0,0,0,0.08)
         );
-
-    pointer-events:none;
-
-    border-radius:inherit;
-}
-
-/* TRUE SYMMETRICAL FISHTAIL CUT */
-
-.bookmark::after{
-
-    content:'';
-
-    position:absolute;
-
-    top:50%;
-
-    right:-1px;
-
-    width:34px;
-
-    height:34px;
-
-    background:var(--bg);
-
-    transform:
-        translateY(-50%)
-        rotate(45deg);
 
     pointer-events:none;
 }
