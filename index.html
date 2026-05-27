@@ -80,8 +80,6 @@ body{
     touch-action:pan-y;
 }
 
-/* VIEWPORT */
-
 .viewport{
 
     position:fixed;
@@ -116,8 +114,6 @@ body{
 
     overscroll-behavior:contain;
 }
-
-/* HEADER */
 
 header{
 
@@ -185,8 +181,6 @@ button:hover{
     font-size:14px;
 }
 
-/* PROGRESS */
-
 .progress-wrapper{
 
     width:100%;
@@ -216,8 +210,6 @@ button:hover{
 
     transition:width 0.25s ease;
 }
-
-/* FONT */
 
 .font-row{
 
@@ -303,8 +295,6 @@ button:hover{
     padding:0;
 }
 
-/* PDF */
-
 main{
 
     width:100%;
@@ -354,8 +344,6 @@ main{
     color:var(--muted);
 }
 
-/* NOTES */
-
 .notes-panel{
 
     background:var(--bg);
@@ -389,8 +377,6 @@ main{
     font-size:18px;
 }
 
-/* NOTEBOOK */
-
 .notes-wrapper{
 
     width:100%;
@@ -408,8 +394,6 @@ main{
 
     width:100%;
 }
-
-/* RULING LAYER */
 
 .ruling-layer{
 
@@ -435,8 +419,6 @@ main{
     background:rgba(157,153,135,0.18);
 }
 
-/* CELLS */
-
 .cells-layer{
 
     position:absolute;
@@ -456,8 +438,6 @@ main{
 
     height:40px;
 }
-
-/* INPUT */
 
 .note-input{
 
@@ -502,23 +482,15 @@ main{
     z-index:5;
 }
 
-/* ACTIVE CELL ALWAYS ABOVE LOWER CELLS */
-
 .note-input.editing{
 
     background:rgba(17,19,15,0.05);
-
-    z-index:9999;
 }
-
-/* CLOSED */
 
 .note-input.closed{
 
     cursor:text;
 }
-
-/* DISABLED */
 
 .note-input.disabled{
 
@@ -527,7 +499,14 @@ main{
     opacity:0.7;
 }
 
-/* LIBRARY */
+/* FIX */
+
+.note-input.covered{
+
+    visibility:hidden;
+
+    pointer-events:none;
+}
 
 .library-overlay{
 
@@ -653,8 +632,6 @@ main{
         class="panels"
         id="panels">
 
-        <!-- PDF -->
-
         <div
             class="panel"
             id="readerPanel">
@@ -750,8 +727,6 @@ main{
 
         </div>
 
-        <!-- NOTES -->
-
         <div
             class="panel notes-panel"
             id="notesPanel">
@@ -776,8 +751,6 @@ main{
     </div>
 
 </div>
-
-<!-- LIBRARY -->
 
 <div
     class="library-overlay"
@@ -808,15 +781,11 @@ main{
 
 <script>
 
-/* PDF */
-
 const pdfjsLib =
     window['pdfjs-dist/build/pdf'];
 
 pdfjsLib.GlobalWorkerOptions.workerSrc =
 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-/* ELEMENTS */
 
 const pdfFile =
     document.getElementById('pdfFile');
@@ -863,8 +832,6 @@ const fontToggle =
 const fontSizeDisplay =
     document.getElementById('fontSizeDisplay');
 
-/* STORAGE */
-
 const DB_NAME =
     'ai-pdf-reader';
 
@@ -874,8 +841,6 @@ const STORE_NAME =
 const LAST_KEY =
     'last-opened-pdf';
 
-/* STATE */
-
 let currentPdfId = null;
 
 let currentFontSize = 1.00;
@@ -883,8 +848,6 @@ let currentFontSize = 1.00;
 let showingNotes = false;
 
 let activeInput = null;
-
-/* DATABASE */
 
 function openDatabase(){
 
@@ -930,8 +893,6 @@ function openDatabase(){
 
 }
 
-/* SAVE */
-
 async function saveRecord(record){
 
     const db =
@@ -954,8 +915,6 @@ async function saveRecord(record){
     });
 
 }
-
-/* GET */
 
 async function getAllRecords(){
 
@@ -983,8 +942,6 @@ async function getAllRecords(){
 
 }
 
-/* REMOVE */
-
 async function removeRecord(id){
 
     const db =
@@ -1008,23 +965,17 @@ async function removeRecord(id){
 
 }
 
-/* STATUS */
-
 function setStatus(text){
 
     statusText.textContent =
         text;
 }
 
-/* PROGRESS */
-
 function setProgress(value){
 
     progressBar.style.width =
         value + '%';
 }
-
-/* FONT */
 
 function updateFont(){
 
@@ -1051,21 +1002,14 @@ function updateFont(){
 
 }
 
-/* CLEAN */
-
 function cleanText(text){
 
     return text
-
         .replace(/\s+/g,' ')
-
         .replace(/-\s+/g,'')
-
         .trim();
 
 }
-
-/* DOMINANT FONT */
 
 function findDominantFontSize(items){
 
@@ -1108,8 +1052,6 @@ function findDominantFontSize(items){
 
 }
 
-/* BOLD */
-
 function isBold(item){
 
     const font =
@@ -1136,8 +1078,6 @@ function isBold(item){
     );
 
 }
-
-/* BUILD BLOCKS */
 
 function buildBlocks(
     items,
@@ -1225,8 +1165,6 @@ function buildBlocks(
 
 }
 
-/* RENDER */
-
 function renderBlocks(blocks){
 
     reader.innerHTML = '';
@@ -1286,8 +1224,6 @@ function renderBlocks(blocks){
 
 }
 
-/* AUTO RESIZE */
-
 function autoResize(textarea){
 
     textarea.style.height =
@@ -1298,7 +1234,71 @@ function autoResize(textarea){
 
 }
 
-/* SAVE NOTES */
+function updateCoveredCells(){
+
+    const inputs =
+        [
+            ...document.querySelectorAll('.note-input')
+        ];
+
+    inputs.forEach(input=>{
+
+        input.classList.remove(
+            'covered'
+        );
+
+    });
+
+    inputs.forEach(input=>{
+
+        const height =
+            input.scrollHeight;
+
+        const startLine =
+            Number(input.dataset.line);
+
+        /* FIX:
+           scrollHeight creates the true
+           line count. +1 ensures final
+           visible line is still owned by
+           upper textarea.
+        */
+
+        const coveredLines =
+            Math.ceil(
+                (height + 1) / 40
+            ) - 1;
+
+        for(
+            let i=1;
+            i<=coveredLines;
+            i++
+        ){
+
+            const covered =
+                document.querySelector(
+                    '.note-input[data-line="' +
+                    (startLine + i) +
+                    '"]'
+                );
+
+            if(
+                covered
+                &&
+                covered !== input
+            ){
+
+                covered.classList.add(
+                    'covered'
+                );
+
+            }
+
+        }
+
+    });
+
+}
 
 async function saveNotes(){
 
@@ -1344,8 +1344,6 @@ async function saveNotes(){
 
 }
 
-/* ENABLE / DISABLE */
-
 function updateCellAvailability(){
 
     document
@@ -1374,8 +1372,6 @@ function updateCellAvailability(){
 
 }
 
-/* CLOSE INPUT */
-
 async function closeCurrentInput(){
 
     if(!activeInput){
@@ -1403,9 +1399,9 @@ async function closeCurrentInput(){
 
     updateCellAvailability();
 
-}
+    updateCoveredCells();
 
-/* NOTEBOOK */
+}
 
 function createNotebook(
     totalHeight,
@@ -1440,8 +1436,6 @@ function createNotebook(
             totalHeight / 40
         );
 
-    /* RULING */
-
     for(
         let i=0;
         i<lineCount;
@@ -1460,8 +1454,6 @@ function createNotebook(
         rulingLayer.appendChild(line);
 
     }
-
-    /* CELLS */
 
     for(
         let i=0;
@@ -1500,9 +1492,9 @@ function createNotebook(
 
             autoResize(input);
 
-        });
+            updateCoveredCells();
 
-        /* OPEN */
+        });
 
         input.addEventListener(
             'click',
@@ -1511,13 +1503,21 @@ function createNotebook(
             event.stopPropagation();
 
             if(
+                input.classList.contains(
+                    'covered'
+                )
+            ){
+
+                return;
+            }
+
+            if(
                 activeInput
                 &&
                 activeInput !== input
             ){
 
                 return;
-
             }
 
             input.readOnly = false;
@@ -1530,26 +1530,24 @@ function createNotebook(
                 'editing'
             );
 
+            input.style.zIndex =
+                '999';
+
             activeInput = input;
 
             updateCellAvailability();
 
-            /* IMPORTANT:
-               DO NOT FORCE CURSOR TO END.
-               Browser now places cursor exactly where user tapped.
-            */
-
             input.focus();
 
         });
-
-        /* INPUT */
 
         input.addEventListener(
             'input',
             ()=>{
 
             autoResize(input);
+
+            updateCoveredCells();
 
         });
 
@@ -1574,8 +1572,6 @@ function createNotebook(
     updateFont();
 
 }
-
-/* PROCESS */
 
 async function processRecord(record){
 
@@ -1693,8 +1689,6 @@ async function processRecord(record){
 
 }
 
-/* NEW FILE */
-
 async function processNewFile(file){
 
     if(!file){
@@ -1728,8 +1722,6 @@ async function processNewFile(file){
     await processRecord(record);
 
 }
-
-/* LIBRARY */
 
 async function renderLibrary(){
 
@@ -1817,8 +1809,6 @@ async function renderLibrary(){
 
 }
 
-/* COPY */
-
 document
     .getElementById('copyNotes')
     .addEventListener(
@@ -1848,8 +1838,6 @@ document
         );
 
 });
-
-/* BUTTONS */
 
 processBtn.addEventListener(
     'click',
@@ -1884,8 +1872,6 @@ document
             'none';
 
 });
-
-/* SWIPE */
 
 function openNotes(){
 
@@ -1971,8 +1957,6 @@ document.addEventListener(
 
 });
 
-/* CLICK OUTSIDE */
-
 document.addEventListener(
     'click',
     async event=>{
@@ -1989,8 +1973,6 @@ document.addEventListener(
     }
 
 });
-
-/* FONT */
 
 fontToggle.addEventListener(
     'click',
@@ -2033,8 +2015,6 @@ document
 
 });
 
-/* AUTO LOAD */
-
 window.addEventListener(
     'load',
     async ()=>{
@@ -2075,8 +2055,6 @@ window.addEventListener(
 
 });
 
-/* CLOSE FONT PANEL */
-
 document.addEventListener(
     'click',
     event=>{
@@ -2103,8 +2081,6 @@ document.addEventListener(
     }
 
 });
-
-/* SERVICE WORKER */
 
 if(
     'serviceWorker'
