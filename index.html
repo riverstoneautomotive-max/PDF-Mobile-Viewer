@@ -413,6 +413,10 @@ main{
     border-bottom:1px solid rgba(157,153,135,0.18);
 }
 
+/* IMPORTANT:
+   THE RULE REMAINS VISIBLE
+   UNDER THE TEXT */
+
 .note-input{
 
     width:100%;
@@ -446,6 +450,10 @@ main{
     display:block;
 
     caret-color:var(--accent-light);
+
+    position:relative;
+
+    z-index:2;
 }
 
 .note-input.closed{
@@ -455,7 +463,37 @@ main{
 
 .note-input.editing{
 
-    background:rgba(255,255,255,0.02);
+    background:transparent;
+}
+
+.note-row::after{
+
+    content:'';
+
+    position:absolute;
+
+    left:0;
+
+    right:0;
+
+    bottom:-1px;
+
+    height:1px;
+
+    background:rgba(157,153,135,0.18);
+
+    z-index:1;
+
+    pointer-events:none;
+}
+
+/* DISABLED CELLS */
+
+.note-input.disabled{
+
+    pointer-events:none;
+
+    opacity:0.7;
 }
 
 /* LIBRARY */
@@ -571,15 +609,6 @@ main{
     background:#3c4035;
 
     border-radius:999px;
-}
-
-@media(max-width:700px){
-
-    .smart-heading{
-
-        font-size:1.65rem;
-    }
-
 }
 
 </style>
@@ -1238,9 +1267,85 @@ function autoResize(textarea){
 
 }
 
+/* SAVE NOTES */
+
+async function saveNotes(){
+
+    if(!currentPdfId){
+        return;
+    }
+
+    const notes = {};
+
+    document
+        .querySelectorAll('.note-input')
+        .forEach(input=>{
+
+        if(
+            input.value.trim()
+        ){
+
+            notes[
+                input.dataset.line
+            ] = input.value;
+
+        }
+
+    });
+
+    const records =
+        await getAllRecords();
+
+    const record =
+        records.find(
+            item=>
+            item.id === currentPdfId
+        );
+
+    if(!record){
+        return;
+    }
+
+    record.notes =
+        notes;
+
+    await saveRecord(record);
+
+}
+
+/* ENABLE / DISABLE */
+
+function updateCellAvailability(){
+
+    document
+        .querySelectorAll('.note-input')
+        .forEach(input=>{
+
+        if(
+            activeInput
+            &&
+            input !== activeInput
+        ){
+
+            input.classList.add(
+                'disabled'
+            );
+
+        }else{
+
+            input.classList.remove(
+                'disabled'
+            );
+
+        }
+
+    });
+
+}
+
 /* CLOSE INPUT */
 
-function closeCurrentInput(){
+async function closeCurrentInput(){
 
     if(!activeInput){
         return;
@@ -1258,7 +1363,11 @@ function closeCurrentInput(){
         'closed'
     );
 
+    await saveNotes();
+
     activeInput = null;
+
+    updateCellAvailability();
 
 }
 
@@ -1316,13 +1425,17 @@ function createNotebook(
 
             event.stopPropagation();
 
+            /* DO NOT OPEN
+               NEW CELL IF
+               ANOTHER IS OPEN */
+
             if(
                 activeInput
                 &&
                 activeInput !== input
             ){
 
-                closeCurrentInput();
+                return;
 
             }
 
@@ -1337,6 +1450,8 @@ function createNotebook(
             );
 
             activeInput = input;
+
+            updateCellAvailability();
 
             input.focus();
 
@@ -1358,8 +1473,6 @@ function createNotebook(
 
             autoResize(input);
 
-            saveNotes();
-
         });
 
         row.appendChild(input);
@@ -1369,52 +1482,6 @@ function createNotebook(
     }
 
     updateFont();
-
-}
-
-/* SAVE NOTES */
-
-async function saveNotes(){
-
-    if(!currentPdfId){
-        return;
-    }
-
-    const notes = {};
-
-    document
-        .querySelectorAll('.note-input')
-        .forEach(input=>{
-
-        if(
-            input.value.trim()
-        ){
-
-            notes[
-                input.dataset.line
-            ] = input.value;
-
-        }
-
-    });
-
-    const records =
-        await getAllRecords();
-
-    const record =
-        records.find(
-            item=>
-            item.id === currentPdfId
-        );
-
-    if(!record){
-        return;
-    }
-
-    record.notes =
-        notes;
-
-    await saveRecord(record);
 
 }
 
@@ -1814,36 +1881,20 @@ document.addEventListener(
 
 });
 
-/* CLICK OUTSIDE NOTES */
-
-notesWrapper.addEventListener(
-    'click',
-    event=>{
-
-    if(
-        !event.target.classList.contains(
-            'note-input'
-        )
-    ){
-
-        closeCurrentInput();
-
-    }
-
-});
+/* CLICK OUTSIDE */
 
 document.addEventListener(
     'click',
-    event=>{
+    async event=>{
 
-    const insideNotes =
-        notesPanel.contains(
-            event.target
+    const clickedInput =
+        event.target.classList.contains(
+            'note-input'
         );
 
-    if(!insideNotes){
+    if(!clickedInput){
 
-        closeCurrentInput();
+        await closeCurrentInput();
 
     }
 
