@@ -989,6 +989,53 @@ async function removeRecord(id){
 
 }
 
+/* RECOVERY */
+
+async function recoverFromCorruptedPDF(id){
+
+    try{
+
+        await removeRecord(id);
+
+    }catch(error){
+
+        console.error(error);
+
+    }
+
+    if(
+        localStorage.getItem(
+            LAST_KEY
+        ) === id
+    ){
+
+        localStorage.removeItem(
+            LAST_KEY
+        );
+
+    }
+
+    reader.innerHTML = `
+        <div class="loading">
+            Corrupted PDF removed.
+            Please reopen the app.
+        </div>
+    `;
+
+    setStatus(
+        'Recovered'
+    );
+
+    setTimeout(()=>{
+
+        location.reload();
+
+    },800);
+
+}
+
+/* STATUS */
+
 function setStatus(text){
 
     statusText.textContent =
@@ -1000,6 +1047,8 @@ function setProgress(value){
     progressBar.style.width =
         value + '%';
 }
+
+/* FONT */
 
 function updateFont(){
 
@@ -1025,6 +1074,8 @@ function updateFont(){
         currentFontSize.toFixed(2) + 'x';
 
 }
+
+/* PDF TEXT */
 
 function cleanText(text){
 
@@ -1251,7 +1302,7 @@ function renderBlocks(blocks){
 
 }
 
-/* AUTO RESIZE */
+/* NOTEBOOK */
 
 function autoResize(textarea){
 
@@ -1262,8 +1313,6 @@ function autoResize(textarea){
         textarea.scrollHeight + 'px';
 
 }
-
-/* COVERED CELLS */
 
 function updateCoveredCells(){
 
@@ -1436,8 +1485,6 @@ async function closeCurrentInput(){
 
 }
 
-/* NOTEBOOK */
-
 function createNotebook(
     totalHeight,
     savedNotes={}
@@ -1471,8 +1518,6 @@ function createNotebook(
             totalHeight / 40
         );
 
-    /* RULING */
-
     for(
         let i=0;
         i<lineCount;
@@ -1491,8 +1536,6 @@ function createNotebook(
         rulingLayer.appendChild(line);
 
     }
-
-    /* CELLS */
 
     for(
         let i=0;
@@ -1527,6 +1570,10 @@ function createNotebook(
         input.value =
             savedNotes[i] || '';
 
+        row.appendChild(input);
+
+        cellsLayer.appendChild(row);
+
         requestAnimationFrame(()=>{
 
             autoResize(input);
@@ -1536,8 +1583,6 @@ function createNotebook(
             updateCellAvailability();
 
         });
-
-        /* OPEN */
 
         input.addEventListener(
             'pointerdown',
@@ -1552,7 +1597,6 @@ function createNotebook(
             ){
 
                 return;
-
             }
 
             if(
@@ -1562,7 +1606,6 @@ function createNotebook(
             ){
 
                 return;
-
             }
 
             input.readOnly = false;
@@ -1587,8 +1630,6 @@ function createNotebook(
 
         });
 
-        /* INPUT */
-
         input.addEventListener(
             'input',
             ()=>{
@@ -1600,10 +1641,6 @@ function createNotebook(
             updateCellAvailability();
 
         });
-
-        row.appendChild(input);
-
-        cellsLayer.appendChild(row);
 
     }
 
@@ -1660,6 +1697,22 @@ async function processRecord(record){
         const pdf =
             await loadingTask.promise;
 
+        /* VALIDATION */
+
+        if(
+            !pdf
+            ||
+            !pdf.numPages
+            ||
+            pdf.numPages < 1
+        ){
+
+            throw new Error(
+                'Invalid PDF'
+            );
+
+        }
+
         const allItems = [];
 
         for(
@@ -1680,6 +1733,18 @@ async function processRecord(record){
 
             const content =
                 await pdfPage.getTextContent();
+
+            if(
+                !content
+                ||
+                !content.items
+            ){
+
+                throw new Error(
+                    'Corrupted page'
+                );
+
+            }
 
             allItems.push(
                 ...content.items
@@ -1727,19 +1792,15 @@ async function processRecord(record){
 
         console.error(error);
 
-        reader.innerHTML = `
-            <div class="loading">
-                Error processing PDF.
-            </div>
-        `;
-
-        setStatus(
-            'Error'
+        await recoverFromCorruptedPDF(
+            record.id
         );
 
     }
 
 }
+
+/* NEW FILE */
 
 async function processNewFile(file){
 
@@ -2116,6 +2177,19 @@ window.addEventListener(
     }catch(error){
 
         console.error(error);
+
+        const lastId =
+            localStorage.getItem(
+                LAST_KEY
+            );
+
+        if(lastId){
+
+            await recoverFromCorruptedPDF(
+                lastId
+            );
+
+        }
 
     }
 
