@@ -240,12 +240,13 @@ main,
 .note-row{
     position:relative;
     width:100%;
-    min-height:var(--line-height);
+    height:var(--line-height);
+    overflow:visible;
 }
 
 .note-input{
     width:100%;
-    min-height:40px;
+    height:40px;
     padding:0;
     margin:0;
     border:none;
@@ -258,6 +259,7 @@ main,
     font-size:1rem;
     line-height:40px;
     white-space:pre-wrap;
+    overflow:visible;
     display:block;
     position:relative;
     z-index:2;
@@ -580,8 +582,10 @@ function cleanText(text){
 
 function autoResize(textarea){
 
-    textarea.style.height = 'auto';
-    textarea.style.height = textarea.scrollHeight + 'px';
+    /* FIXED NOTEBOOK CELLS
+       DO NOT PUSH OTHER ROWS */
+
+    textarea.style.height = '40px';
 
 }
 
@@ -687,7 +691,12 @@ function createNotebook(totalHeight,savedNotes={}){
         });
 
         input.addEventListener('input',()=>{
-            autoResize(input);
+
+            /* KEEP CELL FIXED HEIGHT
+               SO WRITING OVERLAPS
+               LOWER LINES INSTEAD OF
+               PUSHING THEM DOWN */
+
         });
 
         row.appendChild(input);
