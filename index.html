@@ -594,7 +594,7 @@ main{
 
     max-width:620px;
 
-    height:92px;
+    height:68px;
 
     pointer-events:auto;
 
@@ -603,11 +603,11 @@ main{
     transition:transform 0.24s ease;
 
     box-shadow:
-        0 4px 14px rgba(0,0,0,0.34);
+        0 4px 14px rgba(0,0,0,0.28);
 
-    border-radius:0 14px 14px 0;
+    border-radius:0 12px 12px 0;
 
-    overflow:hidden;
+    overflow:visible;
 }
 
 .bookmark.open{
@@ -615,32 +615,7 @@ main{
     transform:translateX(0);
 }
 
-/* RIBBON FISHTAIL */
-
-.bookmark::after{
-
-    content:'';
-
-    position:absolute;
-
-    right:0;
-
-    bottom:0;
-
-    width:0;
-
-    height:0;
-
-    border-left:42px solid transparent;
-
-    border-right:42px solid transparent;
-
-    border-top:30px solid var(--bg);
-
-    transform:translateX(50%);
-}
-
-/* SLIGHT FABRIC HIGHLIGHT */
+/* SUBTLE FABRIC LIGHTING */
 
 .bookmark::before{
 
@@ -653,13 +628,42 @@ main{
     background:
         linear-gradient(
             180deg,
-            rgba(255,255,255,0.16),
-            rgba(255,255,255,0.04) 18%,
+            rgba(255,255,255,0.14),
+            rgba(255,255,255,0.04) 20%,
             rgba(0,0,0,0.08)
         );
 
     pointer-events:none;
+
+    border-radius:inherit;
 }
+
+/* TRUE SYMMETRICAL FISHTAIL CUT */
+
+.bookmark::after{
+
+    content:'';
+
+    position:absolute;
+
+    top:50%;
+
+    right:-1px;
+
+    width:34px;
+
+    height:34px;
+
+    background:var(--bg);
+
+    transform:
+        translateY(-50%)
+        rotate(45deg);
+
+    pointer-events:none;
+}
+
+/* HANDLE */
 
 .bookmark-handle{
 
@@ -670,11 +674,13 @@ main{
     cursor:pointer;
 }
 
+/* COLOR PICKER */
+
 .bookmark-color-picker{
 
     position:absolute;
 
-    top:22px;
+    top:10px;
 
     left:calc(74vw + 14px);
 
