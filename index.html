@@ -525,13 +525,6 @@ main{
     opacity:0.7;
 }
 
-/* COVERED CELL FIX */
-
-.note-input.covered{
-
-    pointer-events:none;
-}
-
 /* LIBRARY */
 
 .library-overlay{
@@ -1303,71 +1296,6 @@ function autoResize(textarea){
 
 }
 
-/* COVERED CELLS */
-
-function updateCoveredCells(){
-
-    const inputs =
-        [
-            ...document.querySelectorAll('.note-input')
-        ];
-
-    inputs.forEach(input=>{
-
-        input.classList.remove(
-            'covered'
-        );
-
-    });
-
-    inputs.forEach(input=>{
-
-        const startLine =
-            Number(input.dataset.line);
-
-        const height =
-            input.offsetHeight;
-
-        const coveredLines =
-            Math.floor(
-                (height - 1) / 40
-            );
-
-        if(coveredLines <= 1){
-            return;
-        }
-
-        for(
-            let i=1;
-            i<coveredLines;
-            i++
-        ){
-
-            const covered =
-                document.querySelector(
-                    '.note-input[data-line="' +
-                    (startLine + i) +
-                    '"]'
-                );
-
-            if(
-                covered
-                &&
-                covered !== input
-            ){
-
-                covered.classList.add(
-                    'covered'
-                );
-
-            }
-
-        }
-
-    });
-
-}
-
 /* SAVE NOTES */
 
 async function saveNotes(){
@@ -1473,8 +1401,6 @@ async function closeCurrentInput(){
 
     updateCellAvailability();
 
-    updateCoveredCells();
-
 }
 
 /* NOTEBOOK */
@@ -1572,27 +1498,11 @@ function createNotebook(
 
             autoResize(input);
 
-            updateCoveredCells();
-
         });
 
-        /* OPEN */
-
-        input.addEventListener(
-            'click',
-            event=>{
+        function openInput(event){
 
             event.stopPropagation();
-
-            if(
-                input.classList.contains(
-                    'covered'
-                )
-            ){
-
-                return;
-
-            }
 
             if(
                 activeInput
@@ -1623,6 +1533,65 @@ function createNotebook(
 
             input.focus();
 
+            requestAnimationFrame(()=>{
+
+                const rect =
+                    input.getBoundingClientRect();
+
+                const clickY =
+                    event.clientY - rect.top;
+
+                const lineHeight = 40;
+
+                const lineIndex =
+                    Math.floor(
+                        clickY / lineHeight
+                    );
+
+                const lines =
+                    input.value.split('\n');
+
+                let position = 0;
+
+                for(
+                    let j=0;
+                    j<lineIndex
+                    &&
+                    j<lines.length;
+                    j++
+                ){
+
+                    position +=
+                        lines[j].length + 1;
+
+                }
+
+                input.setSelectionRange(
+                    position,
+                    position
+                );
+
+            });
+
+        }
+
+        input.addEventListener(
+            'click',
+            openInput
+        );
+
+        input.addEventListener(
+            'touchstart',
+            event=>{
+
+            const touch =
+                event.touches[0];
+
+            openInput({
+                stopPropagation:()=>{},
+                clientY:touch.clientY
+            });
+
         });
 
         /* INPUT */
@@ -1632,8 +1601,6 @@ function createNotebook(
             ()=>{
 
             autoResize(input);
-
-            updateCoveredCells();
 
         });
 
