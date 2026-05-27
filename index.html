@@ -594,7 +594,7 @@ main{
 
     max-width:620px;
 
-    height:68px;
+    height:52px;
 
     pointer-events:auto;
 
@@ -607,23 +607,17 @@ main{
 
     overflow:visible;
 
-    /* TRUE FISHTAIL */
-
-    clip-path:polygon(
-        0 0,
-        100% 0,
-        calc(100% - 34px) 50%,
-        100% 100%,
-        0 100%
-    );
+    border-radius:0;
 }
+
+/* OPEN */
 
 .bookmark.open{
 
     transform:translateX(0);
 }
 
-/* FABRIC LIGHTING */
+/* MAIN RIBBON */
 
 .bookmark::before{
 
@@ -633,15 +627,19 @@ main{
 
     inset:0;
 
-    background:
-        linear-gradient(
-            180deg,
-            rgba(255,255,255,0.14),
-            rgba(255,255,255,0.04) 20%,
-            rgba(0,0,0,0.08)
-        );
+    background:var(--bookmark-color,#b38b4d);
 
-    pointer-events:none;
+    box-shadow:
+        inset 0 1px rgba(255,255,255,0.15),
+        inset 0 -1px rgba(0,0,0,0.16);
+
+    clip-path:polygon(
+        0 0,
+        calc(100% - 34px) 0,
+        100% 50%,
+        calc(100% - 34px) 100%,
+        0 100%
+    );
 }
 
 /* HANDLE */
@@ -681,9 +679,7 @@ main{
 
     border-radius:16px;
 
-    z-index:10000;
-
-    pointer-events:auto;
+    z-index:1000;
 }
 
 .bookmark-color-picker.show{
@@ -702,8 +698,6 @@ main{
     border:2px solid rgba(255,255,255,0.14);
 
     cursor:pointer;
-
-    flex-shrink:0;
 }
 
 /* LIBRARY */
