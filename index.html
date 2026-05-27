@@ -409,7 +409,7 @@ main{
     width:100%;
 }
 
-/* RULING LAYER */
+/* RULING */
 
 .ruling-layer{
 
@@ -499,14 +499,23 @@ main{
 
     caret-color:var(--accent-light);
 
-    z-index:5;
+    z-index:10;
 }
 
-/* RULING REMAINS VISIBLE */
+/* HIGHER CELLS ALWAYS WIN */
+
+.note-input.covered{
+
+    pointer-events:none;
+}
+
+/* ACTIVE */
 
 .note-input.editing{
 
     background:rgba(17,19,15,0.05);
+
+    z-index:9999;
 }
 
 /* CLOSED */
@@ -1296,6 +1305,71 @@ function autoResize(textarea){
 
 }
 
+/* COVERED CELLS */
+
+function updateCoveredCells(){
+
+    const inputs =
+        Array.from(
+            document.querySelectorAll(
+                '.note-input'
+            )
+        );
+
+    inputs.forEach(input=>{
+
+        input.classList.remove(
+            'covered'
+        );
+
+    });
+
+    inputs.forEach((input,index)=>{
+
+        const top =
+            parseInt(
+                input.dataset.line
+            ) * 40;
+
+        const height =
+            input.offsetHeight;
+
+        const coveredLines =
+            Math.floor(
+                (height - 1) / 40
+            );
+
+        for(
+            let i=1;
+            i<=coveredLines;
+            i++
+        ){
+
+            const lower =
+                document.querySelector(
+                    '.note-input[data-line="' +
+                    (
+                        parseInt(
+                            input.dataset.line
+                        ) + i
+                    ) +
+                    '"]'
+                );
+
+            if(lower){
+
+                lower.classList.add(
+                    'covered'
+                );
+
+            }
+
+        }
+
+    });
+
+}
+
 /* SAVE NOTES */
 
 async function saveNotes(){
@@ -1351,6 +1425,19 @@ function updateCellAvailability(){
         .forEach(input=>{
 
         if(
+            input.classList.contains(
+                'covered'
+            )
+        ){
+
+            input.classList.add(
+                'disabled'
+            );
+
+            return;
+        }
+
+        if(
             activeInput
             &&
             input !== activeInput
@@ -1392,12 +1479,11 @@ async function closeCurrentInput(){
         'closed'
     );
 
-    activeInput.style.zIndex =
-        '5';
-
     await saveNotes();
 
     activeInput = null;
+
+    updateCoveredCells();
 
     updateCellAvailability();
 
@@ -1498,6 +1584,10 @@ function createNotebook(
 
             autoResize(input);
 
+            updateCoveredCells();
+
+            updateCellAvailability();
+
         });
 
         /* OPEN */
@@ -1507,6 +1597,15 @@ function createNotebook(
             event=>{
 
             event.stopPropagation();
+
+            if(
+                input.classList.contains(
+                    'covered'
+                )
+            ){
+
+                return;
+            }
 
             if(
                 activeInput
@@ -1527,9 +1626,6 @@ function createNotebook(
             input.classList.add(
                 'editing'
             );
-
-            input.style.zIndex =
-                '999';
 
             activeInput = input;
 
@@ -1554,6 +1650,10 @@ function createNotebook(
             ()=>{
 
             autoResize(input);
+
+            updateCoveredCells();
+
+            updateCellAvailability();
 
         });
 
