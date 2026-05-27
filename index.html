@@ -130,6 +130,10 @@ header{
     backdrop-filter:blur(14px);
 
     border-bottom:1px solid var(--border);
+
+    position:relative;
+
+    z-index:100;
 }
 
 .header-btn{
@@ -151,12 +155,14 @@ header{
 }
 
 input[type="file"]{
-
+    
     color:var(--muted);
-
+    
     font-family:inherit;
-
-    max-width:170px;
+    
+    width:100%;
+    
+    min-width:0;
 }
 
 button{
@@ -277,6 +283,8 @@ button:hover{
     padding:14px;
 
     display:none;
+
+    z-index:500;
 }
 
 .font-controls{
@@ -314,6 +322,8 @@ main{
     margin:0 auto;
 
     padding:0 24px 120px;
+
+    position:relative;
 }
 
 .section{
@@ -559,6 +569,141 @@ main{
 .note-input.covered{
 
     pointer-events:none;
+}
+
+/* BOOKMARKS */
+
+.bookmark-layer{
+
+    position:absolute;
+
+    inset:0;
+
+    pointer-events:none;
+
+    z-index:150;
+}
+
+.bookmark{
+
+    position:absolute;
+
+    left:0;
+
+    width:74vw;
+
+    max-width:620px;
+
+    height:68px;
+
+    pointer-events:auto;
+
+    transform:translateX(calc(-74vw + 44px));
+
+    transition:transform 0.24s ease;
+
+    box-shadow:
+        0 4px 14px rgba(0,0,0,0.28);
+
+    overflow:visible;
+
+    /* TRUE FISHTAIL */
+
+    clip-path:polygon(
+        0 0,
+        100% 0,
+        calc(100% - 34px) 50%,
+        100% 100%,
+        0 100%
+    );
+}
+
+.bookmark.open{
+
+    transform:translateX(0);
+}
+
+/* FABRIC LIGHTING */
+
+.bookmark::before{
+
+    content:'';
+
+    position:absolute;
+
+    inset:0;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255,255,255,0.14),
+            rgba(255,255,255,0.04) 20%,
+            rgba(0,0,0,0.08)
+        );
+
+    pointer-events:none;
+}
+
+/* HANDLE */
+
+.bookmark-handle{
+
+    position:absolute;
+
+    inset:0;
+
+    cursor:pointer;
+
+    z-index:5;
+}
+
+/* COLOR PICKER */
+
+.bookmark-color-picker{
+
+    position:absolute;
+
+    top:10px;
+
+    left:calc(74vw + 14px);
+
+    display:none;
+
+    align-items:center;
+
+    gap:8px;
+
+    background:#1a1c17;
+
+    border:1px solid var(--border);
+
+    padding:10px;
+
+    border-radius:16px;
+
+    z-index:10000;
+
+    pointer-events:auto;
+}
+
+.bookmark-color-picker.show{
+
+    display:flex;
+}
+
+.bookmark-color{
+
+    width:22px;
+
+    height:22px;
+
+    border-radius:999px;
+
+    border:2px solid rgba(255,255,255,0.14);
+
+    cursor:pointer;
+
+    flex-shrink:0;
 }
 
 /* LIBRARY */
@@ -845,6 +990,11 @@ main{
 
             <main>
 
+                <div
+                    class="bookmark-layer"
+                    id="bookmarkLayer">
+                </div>
+
                 <section id="reader">
 
                     <div class="loading">
@@ -1029,6 +1179,9 @@ const fontToggle =
 const fontSizeDisplay =
     document.getElementById('fontSizeDisplay');
 
+const bookmarkLayer =
+    document.getElementById('bookmarkLayer');
+
 /* STORAGE */
 
 const DB_NAME =
@@ -1049,6 +1202,24 @@ let currentFontSize = 1.00;
 let showingNotes = false;
 
 let activeInput = null;
+
+let bookmarks = [];
+
+const BOOKMARK_COLORS = [
+
+    '#9d9162',
+
+    '#c65f5f',
+
+    '#5f8cc6',
+
+    '#5fa773',
+
+    '#8a5fc6',
+
+    '#d69543'
+
+];
 
 /* DATABASE */
 
@@ -1171,6 +1342,212 @@ async function removeRecord(id){
             ()=>resolve();
 
     });
+
+}
+
+/* SAVE BOOKMARKS */
+
+async function saveBookmarks(){
+
+    if(!currentPdfId){
+        return;
+    }
+
+    const records =
+        await getAllRecords();
+
+    const record =
+        records.find(
+            item=>
+            item.id === currentPdfId
+        );
+
+    if(!record){
+        return;
+    }
+
+    record.bookmarks =
+        bookmarks;
+
+    await saveRecord(record);
+
+}
+
+/* BOOKMARK UI */
+
+function renderBookmarks(){
+
+    bookmarkLayer.innerHTML = '';
+
+    bookmarks.forEach(bookmark=>{
+
+        const element =
+            document.createElement('div');
+
+        element.className =
+            'bookmark open';
+
+        element.dataset.id =
+            bookmark.id;
+
+        element.style.top =
+            bookmark.top + 'px';
+
+        element.style.background =
+            bookmark.color;
+
+        element.style.color =
+            bookmark.color;
+
+        const handle =
+            document.createElement('div');
+
+        handle.className =
+            'bookmark-handle';
+
+        const picker =
+            document.createElement('div');
+
+        picker.className =
+            'bookmark-color-picker';
+
+        BOOKMARK_COLORS.forEach(color=>{
+
+            const option =
+                document.createElement('div');
+
+            option.className =
+                'bookmark-color';
+
+            option.style.background =
+                color;
+
+            option.addEventListener(
+                'click',
+                async event=>{
+
+                event.stopPropagation();
+
+                bookmark.color =
+                    color;
+
+                await saveBookmarks();
+
+                renderBookmarks();
+
+            });
+
+            picker.appendChild(option);
+
+        });
+
+        let longPressTimer =
+            null;
+
+        handle.addEventListener(
+            'touchstart',
+            event=>{
+
+            event.stopPropagation();
+
+            longPressTimer =
+                setTimeout(()=>{
+
+                picker.classList.add(
+                    'show'
+                );
+
+            },500);
+
+        });
+
+        handle.addEventListener(
+            'touchend',
+            ()=>{
+
+            clearTimeout(
+                longPressTimer
+            );
+
+        });
+
+        let bookmarkStartX =
+            0;
+
+        handle.addEventListener(
+            'touchstart',
+            event=>{
+
+            bookmarkStartX =
+                event.touches[0].clientX;
+
+        });
+
+        handle.addEventListener(
+            'touchend',
+            async event=>{
+
+            const endX =
+                event.changedTouches[0].clientX;
+
+            const diffX =
+                endX - bookmarkStartX;
+
+            if(diffX < -60){
+
+                bookmarks =
+                    bookmarks.filter(
+                        item=>
+                        item.id !== bookmark.id
+                    );
+
+                await saveBookmarks();
+
+                renderBookmarks();
+
+            }
+
+        });
+
+        element.appendChild(handle);
+
+        element.appendChild(picker);
+
+        bookmarkLayer.appendChild(
+            element
+        );
+
+    });
+
+}
+
+/* ADD BOOKMARK */
+
+async function addBookmark(positionY){
+
+    if(!currentPdfId){
+        return;
+    }
+
+    const top =
+        positionY +
+        readerPanel.scrollTop;
+
+    bookmarks.push({
+
+        id:
+            Date.now().toString() +
+            Math.random(),
+
+        top,
+
+        color:'#9d9162'
+
+    });
+
+    await saveBookmarks();
+
+    renderBookmarks();
 
 }
 
@@ -1429,9 +1806,6 @@ function extractLinks(text){
                 ||
                 char === '\t';
 
-            /* FIRST 8 VISIBLE URL CHARS:
-               ignore whitespace entirely */
-
             if(
                 visibleChars < 8
                 &&
@@ -1444,9 +1818,6 @@ function extractLinks(text){
 
             }
 
-            /* AFTER 8 CHARS:
-               whitespace ENDS url */
-
             if(
                 visibleChars >= 8
                 &&
@@ -1456,8 +1827,6 @@ function extractLinks(text){
                 break;
 
             }
-
-            /* HARD TERMINATORS */
 
             if(
                 char === ')'
@@ -2042,8 +2411,6 @@ function createNotebook(
             totalHeight / 40
         );
 
-    /* RULING */
-
     for(
         let i=0;
         i<lineCount;
@@ -2062,8 +2429,6 @@ function createNotebook(
         rulingLayer.appendChild(line);
 
     }
-
-    /* CELLS */
 
     for(
         let i=0;
@@ -2105,8 +2470,6 @@ function createNotebook(
             updateCoveredCells();
 
         });
-
-        /* OPEN */
 
         input.addEventListener(
             'click',
@@ -2155,8 +2518,6 @@ function createNotebook(
 
         });
 
-        /* INPUT */
-
         input.addEventListener(
             'input',
             ()=>{
@@ -2197,6 +2558,9 @@ async function processRecord(record){
 
         currentPdfId =
             record.id;
+
+        bookmarks =
+            record.bookmarks || [];
 
         localStorage.setItem(
             LAST_KEY,
@@ -2269,6 +2633,8 @@ async function processRecord(record){
                 record.notes || {}
             );
 
+            renderBookmarks();
+
         });
 
         fontControls.style.display =
@@ -2335,6 +2701,8 @@ async function processNewFile(file){
         file,
 
         notes:{},
+
+        bookmarks:[],
 
         created:
             Date.now()
@@ -2616,7 +2984,7 @@ document.addEventListener(
 
 document.addEventListener(
     'touchend',
-    event=>{
+    async event=>{
 
     const endX =
         event.changedTouches[0].clientX;
@@ -2636,10 +3004,33 @@ document.addEventListener(
         return;
     }
 
+    const targetBookmark =
+        event.target.closest(
+            '.bookmark'
+        );
+
+    if(
+        diffX > 90
+        &&
+        !showingNotes
+        &&
+        startX < 50
+        &&
+        !targetBookmark
+    ){
+
+        await addBookmark(endY);
+
+        return;
+
+    }
+
     if(
         diffX < -90
         &&
         !showingNotes
+        &&
+        !targetBookmark
     ){
 
         openNotes();
@@ -2674,6 +3065,26 @@ document.addEventListener(
         await closeCurrentInput();
 
     }
+
+    document
+        .querySelectorAll(
+            '.bookmark-color-picker'
+        )
+        .forEach(picker=>{
+
+        if(
+            !picker.contains(
+                event.target
+            )
+        ){
+
+            picker.classList.remove(
+                'show'
+            );
+
+        }
+
+    });
 
 });
 
