@@ -502,30 +502,29 @@ main{
     z-index:5;
 }
 
+/* ACTIVE CELL ALWAYS ABOVE LOWER CELLS */
+
 .note-input.editing{
 
     background:rgba(17,19,15,0.05);
+
+    z-index:9999;
 }
+
+/* CLOSED */
 
 .note-input.closed{
 
     cursor:text;
 }
 
+/* DISABLED */
+
 .note-input.disabled{
 
     pointer-events:none;
 
     opacity:0.7;
-}
-
-/* IMPORTANT FIX */
-
-.note-input.covered{
-
-    visibility:hidden;
-
-    pointer-events:none;
 }
 
 /* LIBRARY */
@@ -1299,68 +1298,6 @@ function autoResize(textarea){
 
 }
 
-/* FIX COVERED CELLS */
-
-function updateCoveredCells(){
-
-    const inputs =
-        [
-            ...document.querySelectorAll('.note-input')
-        ];
-
-    inputs.forEach(input=>{
-
-        input.classList.remove(
-            'covered'
-        );
-
-    });
-
-    inputs.forEach(input=>{
-
-        const line =
-            Number(input.dataset.line);
-
-        const totalLines =
-            Math.ceil(
-                input.scrollHeight / 40
-            );
-
-        if(totalLines <= 1){
-            return;
-        }
-
-        for(
-            let i=1;
-            i<totalLines;
-            i++
-        ){
-
-            const covered =
-                document.querySelector(
-                    '.note-input[data-line="' +
-                    (line + i) +
-                    '"]'
-                );
-
-            if(
-                covered
-                &&
-                covered !== input
-            ){
-
-                covered.classList.add(
-                    'covered'
-                );
-
-            }
-
-        }
-
-    });
-
-}
-
 /* SAVE NOTES */
 
 async function saveNotes(){
@@ -1466,8 +1403,6 @@ async function closeCurrentInput(){
 
     updateCellAvailability();
 
-    updateCoveredCells();
-
 }
 
 /* NOTEBOOK */
@@ -1505,6 +1440,8 @@ function createNotebook(
             totalHeight / 40
         );
 
+    /* RULING */
+
     for(
         let i=0;
         i<lineCount;
@@ -1523,6 +1460,8 @@ function createNotebook(
         rulingLayer.appendChild(line);
 
     }
+
+    /* CELLS */
 
     for(
         let i=0;
@@ -1561,9 +1500,9 @@ function createNotebook(
 
             autoResize(input);
 
-            updateCoveredCells();
-
         });
+
+        /* OPEN */
 
         input.addEventListener(
             'click',
@@ -1572,20 +1511,13 @@ function createNotebook(
             event.stopPropagation();
 
             if(
-                input.classList.contains(
-                    'covered'
-                )
-            ){
-                return;
-            }
-
-            if(
                 activeInput
                 &&
                 activeInput !== input
             ){
 
                 return;
+
             }
 
             input.readOnly = false;
@@ -1598,32 +1530,26 @@ function createNotebook(
                 'editing'
             );
 
-            input.style.zIndex =
-                '999';
-
             activeInput = input;
 
             updateCellAvailability();
 
+            /* IMPORTANT:
+               DO NOT FORCE CURSOR TO END.
+               Browser now places cursor exactly where user tapped.
+            */
+
             input.focus();
 
-            const length =
-                input.value.length;
-
-            input.setSelectionRange(
-                length,
-                length
-            );
-
         });
+
+        /* INPUT */
 
         input.addEventListener(
             'input',
             ()=>{
 
             autoResize(input);
-
-            updateCoveredCells();
 
         });
 
