@@ -1429,6 +1429,9 @@ function extractLinks(text){
                 ||
                 char === '\t';
 
+            /* FIRST 8 VISIBLE URL CHARS:
+               ignore whitespace entirely */
+
             if(
                 visibleChars < 8
                 &&
@@ -1441,6 +1444,9 @@ function extractLinks(text){
 
             }
 
+            /* AFTER 8 CHARS:
+               whitespace ENDS url */
+
             if(
                 visibleChars >= 8
                 &&
@@ -1450,6 +1456,8 @@ function extractLinks(text){
                 break;
 
             }
+
+            /* HARD TERMINATORS */
 
             if(
                 char === ')'
@@ -2034,6 +2042,8 @@ function createNotebook(
             totalHeight / 40
         );
 
+    /* RULING */
+
     for(
         let i=0;
         i<lineCount;
@@ -2052,6 +2062,8 @@ function createNotebook(
         rulingLayer.appendChild(line);
 
     }
+
+    /* CELLS */
 
     for(
         let i=0;
@@ -2093,6 +2105,8 @@ function createNotebook(
             updateCoveredCells();
 
         });
+
+        /* OPEN */
 
         input.addEventListener(
             'click',
@@ -2141,6 +2155,8 @@ function createNotebook(
 
         });
 
+        /* INPUT */
+
         input.addEventListener(
             'input',
             ()=>{
@@ -2173,63 +2189,6 @@ function createNotebook(
 
 }
 
-/* EXTRACT PDF */
-
-async function extractPdfData(file){
-
-    const buffer =
-        await file.arrayBuffer();
-
-    const loadingTask =
-        pdfjsLib.getDocument({
-            data:buffer
-        });
-
-    const pdf =
-        await loadingTask.promise;
-
-    const allItems = [];
-
-    for(
-        let page=1;
-        page<=pdf.numPages;
-        page++
-    ){
-
-        const pdfPage =
-            await pdf.getPage(page);
-
-        const content =
-            await pdfPage.getTextContent();
-
-        allItems.push(
-            ...content.items
-        );
-
-        setProgress(
-            (
-                page /
-                pdf.numPages
-            ) * 100
-        );
-
-    }
-
-    const dominant =
-        findDominantFontSize(
-            allItems
-        );
-
-    const blocks =
-        buildBlocks(
-            allItems,
-            dominant
-        );
-
-    return blocks;
-
-}
-
 /* PROCESS */
 
 async function processRecord(record){
@@ -2246,15 +2205,62 @@ async function processRecord(record){
 
         reader.innerHTML = `
             <div class="loading">
-                Loading Document...
+                Processing PDF...
             </div>
         `;
 
         setProgress(0);
 
-        renderBlocks(
-            record.blocks
-        );
+        const buffer =
+            await record.file.arrayBuffer();
+
+        const loadingTask =
+            pdfjsLib.getDocument({
+                data:buffer
+            });
+
+        const pdf =
+            await loadingTask.promise;
+
+        const allItems = [];
+
+        for(
+            let page=1;
+            page<=pdf.numPages;
+            page++
+        ){
+
+            const pdfPage =
+                await pdf.getPage(page);
+
+            const content =
+                await pdfPage.getTextContent();
+
+            allItems.push(
+                ...content.items
+            );
+
+            setProgress(
+                (
+                    page /
+                    pdf.numPages
+                ) * 100
+            );
+
+        }
+
+        const dominant =
+            findDominantFontSize(
+                allItems
+            );
+
+        const blocks =
+            buildBlocks(
+                allItems,
+                dominant
+            );
+
+        renderBlocks(blocks);
 
         requestAnimationFrame(()=>{
 
@@ -2267,8 +2273,6 @@ async function processRecord(record){
 
         fontControls.style.display =
             'block';
-
-        setProgress(100);
 
     }catch(error){
 
@@ -2297,7 +2301,7 @@ async function processRecord(record){
 
         reader.innerHTML = `
             <div class="loading">
-                Corrupted document removed.
+                Corrupted PDF removed.
             </div>
         `;
 
@@ -2320,17 +2324,6 @@ async function processNewFile(file){
         return;
     }
 
-    reader.innerHTML = `
-        <div class="loading">
-            Processing PDF...
-        </div>
-    `;
-
-    setProgress(0);
-
-    const blocks =
-        await extractPdfData(file);
-
     const record = {
 
         id:
@@ -2339,7 +2332,7 @@ async function processNewFile(file){
         name:
             file.name,
 
-        blocks,
+        file,
 
         notes:{},
 
