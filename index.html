@@ -95,7 +95,7 @@ header{
 
     width:100%;
 
-    padding:16px;
+    padding:16px 16px 60px;
 
     background:rgba(17,19,15,0.96);
 
@@ -313,7 +313,7 @@ main{
 
     position:absolute;
 
-    top:0;
+    top:calc(100% + 12px);
 
     right:0;
 
@@ -758,7 +758,7 @@ function cleanText(text){
         .trim();
 }
 
-/* SPLIT LONG PARAGRAPHS */
+/* SPLIT PARAGRAPHS */
 
 function splitLongParagraph(text){
 
@@ -1085,8 +1085,6 @@ function renderBlocks(blocks){
             return;
         }
 
-        /* LINKS */
-
         if(
             extractUrl(text)
         ){
@@ -1099,8 +1097,6 @@ function renderBlocks(blocks){
 
             return;
         }
-
-        /* HEADINGS */
 
         if(
             block.type === 'heading'
@@ -1117,8 +1113,6 @@ function renderBlocks(blocks){
 
             wrapper.appendChild(h);
         }
-
-        /* PARAGRAPHS */
 
         else{
 
@@ -1291,7 +1285,7 @@ processBtn.addEventListener(
 
 });
 
-/* AUTO LOAD SAVED PDF */
+/* AUTO LOAD */
 
 window.addEventListener(
     'load',
