@@ -457,7 +457,7 @@ main{
     height:40px;
 
     overflow:visible;
-}}
+}
 
 /* INPUT */
 
@@ -1330,16 +1330,16 @@ function updateCoveredCells(){
         const height =
             input.offsetHeight;
 
-        const coveredLines =
-            Math.ceil
-                (height / 40) - 1
-        if(coveredLines <= 1){
+        const linesUsed =
+            Math.ceil(height / 40);
+
+        if(linesUsed <= 1){
             return;
         }
 
         for(
-            let i=1;
-            i<coveredLines;
+            let i = 1;
+            i < linesUsed;
             i++
         ){
 
@@ -1351,8 +1351,7 @@ function updateCoveredCells(){
                 );
 
             if(
-                covered
-                &&
+                covered &&
                 covered !== input
             ){
 
