@@ -45,8 +45,6 @@
     --accent-dark:#7f744d;
 
     --accent-light:#cab97f;
-
-    --line-height:40px;
 }
 
 *{
@@ -76,7 +74,6 @@ body{
 }
 
 body{
-
     touch-action:pan-y;
 }
 
@@ -996,11 +993,8 @@ function updateFont(){
 function cleanText(text){
 
     return text
-
         .replace(/\s+/g,' ')
-
         .replace(/-\s+/g,'')
-
         .trim();
 
 }
@@ -1381,6 +1375,77 @@ function createNotebook(
 
     }
 
+    function refreshCoveredInputs(){
+
+        const inputs =
+            Array.from(
+                document.querySelectorAll(
+                    '.note-input'
+                )
+            );
+
+        inputs.forEach(input=>{
+
+            input.dataset.covered =
+                'false';
+
+            input.style.pointerEvents =
+                'auto';
+
+        });
+
+        inputs.forEach(input=>{
+
+            const startLine =
+                Number(
+                    input.dataset.line
+                );
+
+            const rowsCovered =
+                Math.max(
+                    1,
+                    Math.ceil(
+                        input.offsetHeight / 40
+                    )
+                );
+
+            if(rowsCovered <= 1){
+                return;
+            }
+
+            for(
+                let i = 1;
+                i < rowsCovered;
+                i++
+            ){
+
+                const coveredLine =
+                    startLine + i;
+
+                const coveredInput =
+                    inputs.find(
+                        item=>
+                        Number(
+                            item.dataset.line
+                        ) === coveredLine
+                    );
+
+                if(coveredInput){
+
+                    coveredInput.dataset.covered =
+                        'true';
+
+                    coveredInput.style.pointerEvents =
+                        'none';
+
+                }
+
+            }
+
+        });
+
+    }
+
     for(
         let i=0;
         i<lineCount;
@@ -1405,9 +1470,6 @@ function createNotebook(
         input.dataset.line =
             i;
 
-        input.dataset.baseHeight =
-            '40';
-
         input.readOnly =
             true;
 
@@ -1421,7 +1483,7 @@ function createNotebook(
 
             autoResize(input);
 
-            updateCoveredRows();
+            refreshCoveredInputs();
 
         });
 
@@ -1437,6 +1499,7 @@ function createNotebook(
             ){
 
                 return;
+
             }
 
             if(
@@ -1446,30 +1509,27 @@ function createNotebook(
             ){
 
                 return;
-            }
-
-            if(input.readOnly){
-
-                input.readOnly = false;
-
-                input.classList.remove(
-                    'closed'
-                );
-
-                input.classList.add(
-                    'editing'
-                );
-
-                input.style.zIndex =
-                    '999';
-
-                activeInput = input;
-
-                updateCellAvailability();
 
             }
 
-        );
+            input.readOnly = false;
+
+            input.classList.remove(
+                'closed'
+            );
+
+            input.classList.add(
+                'editing'
+            );
+
+            input.style.zIndex =
+                '999';
+
+            activeInput = input;
+
+            updateCellAvailability();
+
+        });
 
         input.addEventListener(
             'focus',
@@ -1485,7 +1545,7 @@ function createNotebook(
 
             autoResize(input);
 
-            updateCoveredRows();
+            refreshCoveredInputs();
 
         });
 
@@ -1508,76 +1568,6 @@ function createNotebook(
     );
 
     updateFont();
-
-    function updateCoveredRows(){
-
-        const allInputs =
-            Array.from(
-                document.querySelectorAll(
-                    '.note-input'
-                )
-            );
-
-        allInputs.forEach(input=>{
-
-            input.dataset.covered =
-                'false';
-
-            input.style.pointerEvents =
-                'auto';
-
-        });
-
-        allInputs.forEach(input=>{
-
-            const height =
-                input.offsetHeight;
-
-            const rowsCovered =
-                Math.ceil(
-                    height / 40
-                );
-
-            const start =
-                Number(
-                    input.dataset.line
-                );
-
-            if(rowsCovered <= 1){
-                return;
-            }
-
-            for(
-                let rowIndex = start + 1;
-                rowIndex < start + rowsCovered;
-                rowIndex++
-            ){
-
-                const coveredInput =
-                    allInputs.find(
-                        item=>
-                        Number(
-                            item.dataset.line
-                        ) === rowIndex
-                    );
-
-                if(
-                    coveredInput
-                ){
-
-                    coveredInput.dataset.covered =
-                        'true';
-
-                    coveredInput.style.pointerEvents =
-                        'none';
-
-                }
-
-            }
-
-        });
-
-    }
 
 }
 
