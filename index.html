@@ -46,7 +46,7 @@
 
     --accent-light:#cab97f;
 
-    --rule:40px;
+    --line-height:40px;
 }
 
 *{
@@ -64,12 +64,9 @@ body{
 
     height:100%;
 
-    background:var(--bg);
-
     overflow:hidden;
-}
 
-body{
+    background:var(--bg);
 
     color:var(--text);
 
@@ -78,7 +75,12 @@ body{
     -webkit-font-smoothing:antialiased;
 }
 
-/* APP */
+body{
+
+    touch-action:pan-y;
+}
+
+/* VIEWPORT */
 
 .viewport{
 
@@ -97,7 +99,7 @@ body{
 
     height:100vh;
 
-    transition:transform 0.35s cubic-bezier(.25,.8,.25,1);
+    transition:transform 0.36s cubic-bezier(.25,.8,.25,1);
 
     transform:translateX(0);
 }
@@ -112,7 +114,7 @@ body{
 
     overflow-x:hidden;
 
-    scroll-behavior:smooth;
+    overscroll-behavior:contain;
 }
 
 /* HEADER */
@@ -146,6 +148,8 @@ input[type="file"]{
     color:var(--muted);
 
     font-family:inherit;
+
+    max-width:170px;
 }
 
 button{
@@ -165,6 +169,8 @@ button{
     cursor:pointer;
 
     font-family:inherit;
+
+    transition:0.2s;
 }
 
 button:hover{
@@ -215,8 +221,6 @@ button:hover{
 
 .font-row{
 
-    width:100%;
-
     display:flex;
 
     justify-content:flex-end;
@@ -226,9 +230,9 @@ button:hover{
 
 .floating{
 
-    position:relative;
-
     display:none;
+
+    position:relative;
 }
 
 .fab{
@@ -239,17 +243,13 @@ button:hover{
 
     border-radius:999px;
 
+    padding:0;
+
     background:#1a1c17;
 
     border:1px solid var(--border);
 
     color:var(--text);
-
-    font-size:13px;
-
-    font-weight:700;
-
-    padding:0;
 
     display:flex;
 
@@ -277,8 +277,6 @@ button:hover{
     padding:14px;
 
     display:none;
-
-    box-shadow:0 14px 40px rgba(0,0,0,0.45);
 }
 
 .font-controls{
@@ -298,18 +296,14 @@ button:hover{
 
     border-radius:12px;
 
-    border:none;
-
     background:#2b2e25;
 
     color:var(--text);
 
-    font-size:16px;
-
     padding:0;
 }
 
-/* MAIN */
+/* PDF */
 
 main{
 
@@ -334,6 +328,8 @@ main{
 .smart-heading{
 
     font-size:2rem;
+
+    line-height:1.14;
 
     margin-top:3rem;
 
@@ -367,11 +363,11 @@ main{
 
 .notes-header{
 
+    padding:16px;
+
     display:flex;
 
     justify-content:flex-end;
-
-    padding:16px;
 
     border-bottom:1px solid var(--border);
 
@@ -404,68 +400,60 @@ main{
     margin:0 auto;
 
     padding:0 24px 120px;
-
-    position:relative;
 }
 
-/* SCROLLING RULES */
-
-.rules{
-
-    position:absolute;
-
-    inset:0;
-
-    background:
-        repeating-linear-gradient(
-            to bottom,
-            transparent 0px,
-            transparent calc(var(--rule) - 1px),
-            rgba(157,153,135,0.14) var(--rule)
-        );
-
-    pointer-events:none;
-}
-
-/* FREE WRITING LAYER */
-
-#notesLayer{
+.note-row{
 
     position:relative;
 
     width:100%;
 
-    min-height:2000px;
+    min-height:var(--line-height);
+
+    border-bottom:1px solid rgba(157,153,135,0.18);
 }
 
-/* INDIVIDUAL WRITABLE LINES */
-
-.note-line{
-
-    position:absolute;
-
-    left:0;
+.note-input{
 
     width:100%;
 
-    min-height:var(--rule);
+    min-height:40px;
 
-    padding:6px 0 0;
+    padding:0;
 
-    color:var(--text);
+    margin:0;
 
-    font-size:1rem;
+    background:transparent;
 
-    line-height:28px;
+    border:none;
 
     outline:none;
 
+    resize:none;
+
+    overflow:hidden;
+
+    color:var(--text);
+
+    font-family:'Source Serif 4', serif;
+
+    font-size:1rem;
+
+    line-height:40px;
+
     white-space:pre-wrap;
 
-    word-break:break-word;
+    display:block;
+
+    caret-color:var(--accent-light);
 }
 
-.note-line:focus{
+.note-input.closed{
+
+    cursor:text;
+}
+
+.note-input.editing{
 
     background:rgba(255,255,255,0.02);
 }
@@ -493,13 +481,13 @@ main{
 
     top:0;
 
+    padding:16px;
+
     display:flex;
 
     align-items:center;
 
     justify-content:space-between;
-
-    padding:16px;
 
     background:rgba(17,19,15,0.96);
 
@@ -718,12 +706,9 @@ main{
 
             </div>
 
-            <div class="notes-wrapper">
-
-                <div class="rules"></div>
-
-                <div id="notesLayer"></div>
-
+            <div
+                class="notes-wrapper"
+                id="notesWrapper">
             </div>
 
         </div>
@@ -782,26 +767,23 @@ const processBtn =
 const reader =
     document.getElementById('reader');
 
-const progressBar =
-    document.getElementById('progressBar');
-
 const statusText =
     document.getElementById('status');
 
+const progressBar =
+    document.getElementById('progressBar');
+
+const notesWrapper =
+    document.getElementById('notesWrapper');
+
 const panels =
     document.getElementById('panels');
-
-const notesLayer =
-    document.getElementById('notesLayer');
 
 const readerPanel =
     document.getElementById('readerPanel');
 
 const notesPanel =
     document.getElementById('notesPanel');
-
-const libraryBtn =
-    document.getElementById('libraryBtn');
 
 const libraryOverlay =
     document.getElementById('libraryOverlay');
@@ -812,11 +794,11 @@ const libraryList =
 const fontControls =
     document.getElementById('fontControls');
 
-const fontToggle =
-    document.getElementById('fontToggle');
-
 const fontPanel =
     document.getElementById('fontPanel');
+
+const fontToggle =
+    document.getElementById('fontToggle');
 
 const fontSizeDisplay =
     document.getElementById('fontSizeDisplay');
@@ -839,6 +821,8 @@ let currentPdfId = null;
 let currentFontSize = 1.00;
 
 let showingNotes = false;
+
+let activeInput = null;
 
 /* DATABASE */
 
@@ -988,19 +972,19 @@ function updateFont(){
         .querySelectorAll('.section')
         .forEach(section=>{
 
-            section.style.fontSize =
-                currentFontSize + 'rem';
+        section.style.fontSize =
+            currentFontSize + 'rem';
 
-        });
+    });
 
     document
-        .querySelectorAll('.note-line')
-        .forEach(line=>{
+        .querySelectorAll('.note-input')
+        .forEach(input=>{
 
-            line.style.fontSize =
-                currentFontSize + 'rem';
+        input.style.fontSize =
+            currentFontSize + 'rem';
 
-        });
+    });
 
     fontSizeDisplay.textContent =
         currentFontSize.toFixed(2) + 'x';
@@ -1181,7 +1165,7 @@ function buildBlocks(
 
 }
 
-/* RENDER PDF */
+/* RENDER */
 
 function renderBlocks(blocks){
 
@@ -1242,55 +1226,145 @@ function renderBlocks(blocks){
 
 }
 
+/* AUTO RESIZE */
+
+function autoResize(textarea){
+
+    textarea.style.height =
+        'auto';
+
+    textarea.style.height =
+        textarea.scrollHeight + 'px';
+
+}
+
+/* CLOSE INPUT */
+
+function closeCurrentInput(){
+
+    if(!activeInput){
+        return;
+    }
+
+    activeInput.blur();
+
+    activeInput.readOnly = true;
+
+    activeInput.classList.remove(
+        'editing'
+    );
+
+    activeInput.classList.add(
+        'closed'
+    );
+
+    activeInput = null;
+
+}
+
 /* NOTEBOOK */
 
-function createNotebookLines(
+function createNotebook(
     totalHeight,
-    savedNotes = {}
+    savedNotes={}
 ){
 
-    notesLayer.innerHTML = '';
+    notesWrapper.innerHTML = '';
 
-    const lineHeight = 40;
-
-    const lines =
+    const lineCount =
         Math.ceil(
-            totalHeight / lineHeight
-        ) + 20;
-
-    notesLayer.style.minHeight =
-        (lines * lineHeight) + 'px';
+            totalHeight / 40
+        ) + 80;
 
     for(
         let i=0;
-        i<lines;
+        i<lineCount;
         i++
     ){
 
-        const line =
+        const row =
             document.createElement('div');
 
-        line.className =
-            'note-line';
+        row.className =
+            'note-row';
 
-        line.contentEditable =
-            'true';
+        const input =
+            document.createElement('textarea');
 
-        line.dataset.line =
+        input.className =
+            'note-input closed';
+
+        input.dataset.line =
             i;
 
-        line.style.top =
-            (i * lineHeight) + 'px';
+        input.readOnly =
+            true;
 
-        line.textContent =
+        input.spellcheck =
+            false;
+
+        input.value =
             savedNotes[i] || '';
 
-        line.addEventListener(
-            'input',
-            saveNotes
-        );
+        autoResize(input);
 
-        notesLayer.appendChild(line);
+        /* OPEN */
+
+        input.addEventListener(
+            'click',
+            event=>{
+
+            event.stopPropagation();
+
+            if(
+                activeInput
+                &&
+                activeInput !== input
+            ){
+
+                closeCurrentInput();
+
+            }
+
+            input.readOnly = false;
+
+            input.classList.remove(
+                'closed'
+            );
+
+            input.classList.add(
+                'editing'
+            );
+
+            activeInput = input;
+
+            input.focus();
+
+            const length =
+                input.value.length;
+
+            input.setSelectionRange(
+                length,
+                length
+            );
+
+        });
+
+        /* INPUT */
+
+        input.addEventListener(
+            'input',
+            ()=>{
+
+            autoResize(input);
+
+            saveNotes();
+
+        });
+
+        row.appendChild(input);
+
+        notesWrapper.appendChild(row);
 
     }
 
@@ -1309,17 +1383,16 @@ async function saveNotes(){
     const notes = {};
 
     document
-        .querySelectorAll('.note-line')
-        .forEach(line=>{
+        .querySelectorAll('.note-input')
+        .forEach(input=>{
 
-        const value =
-            line.textContent.trim();
-
-        if(value){
+        if(
+            input.value.trim()
+        ){
 
             notes[
-                line.dataset.line
-            ] = value;
+                input.dataset.line
+            ] = input.value;
 
         }
 
@@ -1431,7 +1504,7 @@ async function processRecord(record){
 
         requestAnimationFrame(()=>{
 
-            createNotebookLines(
+            createNotebook(
                 reader.scrollHeight,
                 record.notes || {}
             );
@@ -1455,13 +1528,15 @@ async function processRecord(record){
             </div>
         `;
 
-        setStatus('Error');
+        setStatus(
+            'Error'
+        );
 
     }
 
 }
 
-/* NEW PDF */
+/* NEW FILE */
 
 async function processNewFile(file){
 
@@ -1596,15 +1671,15 @@ document
         let text = '';
 
         document
-            .querySelectorAll('.note-line')
-            .forEach(line=>{
+            .querySelectorAll('.note-input')
+            .forEach(input=>{
 
             if(
-                line.textContent.trim()
+                input.value.trim()
             ){
 
                 text +=
-                    line.textContent +
+                    input.value +
                     '\n';
 
             }
@@ -1629,14 +1704,16 @@ processBtn.addEventListener(
 
 });
 
-libraryBtn.addEventListener(
-    'click',
-    ()=>{
+document
+    .getElementById('libraryBtn')
+    .addEventListener(
+        'click',
+        ()=>{
 
-    libraryOverlay.style.display =
-        'block';
+        libraryOverlay.style.display =
+            'block';
 
-    renderLibrary();
+        renderLibrary();
 
 });
 
@@ -1732,6 +1809,41 @@ document.addEventListener(
     ){
 
         closeNotes();
+
+    }
+
+});
+
+/* CLICK OUTSIDE NOTES */
+
+notesWrapper.addEventListener(
+    'click',
+    event=>{
+
+    if(
+        !event.target.classList.contains(
+            'note-input'
+        )
+    ){
+
+        closeCurrentInput();
+
+    }
+
+});
+
+document.addEventListener(
+    'click',
+    event=>{
+
+    const insideNotes =
+        notesPanel.contains(
+            event.target
+        );
+
+    if(!insideNotes){
+
+        closeCurrentInput();
 
     }
 
