@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
 <meta charset="UTF-8" />
 
 <meta
@@ -9,18 +10,19 @@
 />
 
 <title>AI PDF Mobile Reader</title>
-    <link rel="manifest" href="manifest.json">
+
+<link rel="manifest" href="manifest.json">
+
 <meta name="theme-color" content="#11130f">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
+
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-<!-- Sentinel-esque serif -->
-
 <link
-    href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;500;600&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;500;600;700&display=swap"
     rel="stylesheet"
->
+/>
 
 <style>
 
@@ -34,13 +36,13 @@
 
     --text:#f3f1ea;
 
-    --muted:#a39f8c;
+    --muted:#9d9987;
 
     --accent:#9d9162;
 
     --accent-dark:#7f744d;
 
-    --accent-light:#c1b27b;
+    --accent-light:#cab97f;
 }
 
 *{
@@ -51,19 +53,19 @@ html,
 body{
 
     margin:0;
+
     padding:0;
 
     width:100%;
-    max-width:100%;
 
     overflow-x:hidden;
 }
 
 html{
 
-    scroll-behavior:smooth;
-
     background:var(--bg);
+
+    scroll-behavior:smooth;
 }
 
 body{
@@ -72,7 +74,7 @@ body{
 
     color:var(--text);
 
-    font-family:'Source Serif 4', Georgia, serif;
+    font-family:'Source Serif 4', serif;
 
     -webkit-font-smoothing:antialiased;
 
@@ -95,7 +97,7 @@ header{
 
     background:rgba(17,19,15,0.95);
 
-    backdrop-filter:blur(12px);
+    backdrop-filter:blur(14px);
 
     border-bottom:1px solid var(--border);
 }
@@ -128,7 +130,7 @@ button{
 
     border:none;
 
-    border-radius:12px;
+    border-radius:14px;
 
     padding:12px 18px;
 
@@ -195,64 +197,111 @@ main{
 
     width:100%;
 
-    max-width:none;
+    max-width:900px;
 
-    margin:0;
+    margin:0 auto;
 
-    padding:38px 18px 120px;
+    padding:36px 28px 120px;
 }
 
 .article{
 
-    display:flex;
-
-    flex-direction:column;
-
-    gap:90px;
-
     width:100%;
 }
 
-/* TEXT */
+/* DOCUMENT */
 
 .section{
 
     width:100%;
 
-    line-height:1.82;
-
     font-size:1rem;
+
+    line-height:1.8;
 
     letter-spacing:0.01em;
 
-    word-wrap:break-word;
-
     overflow-wrap:break-word;
+
+    hyphens:auto;
 }
 
-.section h2{
+/* HEADINGS */
 
-    font-size:0.9rem;
+.smart-heading{
 
-    text-transform:uppercase;
+    font-size:2rem;
 
-    letter-spacing:3px;
+    line-height:1.14;
 
-    color:var(--muted);
+    margin-top:3.5rem;
 
-    margin-bottom:36px;
+    margin-bottom:1.6rem;
 
-    font-weight:600;
+    font-weight:700;
 
-    font-family:system-ui,sans-serif;
+    color:var(--text);
 }
 
-.section p{
+/* PARAGRAPHS */
 
-    margin-bottom:1.8rem;
+.smart-paragraph{
 
-    max-width:100%;
+    margin:0 0 2.2rem;
+
+    text-align:justify;
+
+    text-justify:inter-word;
 }
+
+/* LINKS */
+
+.smart-link{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    gap:14px;
+
+    margin:1.5rem 0 2.3rem;
+
+    padding:16px 18px;
+
+    border-radius:18px;
+
+    background:#1b1d18;
+
+    border:1px solid var(--border);
+
+    color:var(--accent-light);
+
+    text-decoration:none;
+
+    line-height:1.5;
+
+    transition:all 0.2s ease;
+
+    word-break:break-word;
+}
+
+.smart-link:hover{
+
+    background:#252822;
+
+    border-color:#505445;
+}
+
+.smart-link::after{
+
+    content:"↗";
+
+    opacity:0.7;
+}
+
+/* LOADING */
 
 .loading{
 
@@ -265,9 +314,7 @@ main{
     font-size:1.05rem;
 }
 
-/* FONT BUTTON
-   ATTACHED TO HEADER
-*/
+/* FONT CONTROLS */
 
 .floating{
 
@@ -302,27 +349,12 @@ main{
 
     cursor:pointer;
 
-    padding:0;
-
     display:flex;
 
     align-items:center;
 
     justify-content:center;
-
-    backdrop-filter:blur(10px);
-
-    -webkit-backdrop-filter:blur(10px);
-
-    transition:background 0.2s ease;
 }
-
-.fab:hover{
-
-    background:#252820;
-}
-
-/* FONT PANEL */
 
 .font-panel{
 
@@ -334,8 +366,6 @@ main{
 
     width:170px;
 
-    max-width:calc(100vw - 32px);
-
     background:rgba(26,28,23,0.98);
 
     border:1px solid var(--border);
@@ -345,8 +375,6 @@ main{
     padding:14px;
 
     z-index:2000;
-
-    backdrop-filter:blur(14px);
 
     display:none;
 
@@ -375,8 +403,6 @@ main{
     align-items:center;
 
     justify-content:space-between;
-
-    gap:10px;
 }
 
 .font-btn{
@@ -396,13 +422,6 @@ main{
     font-size:16px;
 
     cursor:pointer;
-
-    transition:all 0.2s ease;
-}
-
-.font-btn:hover{
-
-    background:#393d31;
 }
 
 .font-size-display{
@@ -418,16 +437,12 @@ main{
     font-family:system-ui,sans-serif;
 }
 
-/* SELECTION */
-
 ::selection{
 
     background:#5b5537;
 
     color:white;
 }
-
-/* SCROLLBAR */
 
 ::-webkit-scrollbar{
 
@@ -441,30 +456,16 @@ main{
     border-radius:999px;
 }
 
-/* MOBILE */
-
 @media(max-width:700px){
 
     main{
 
-        padding:28px 14px 120px;
+        padding:28px 35px 120px;
     }
 
-    .section{
+    .smart-heading{
 
-        font-size:1rem;
-
-        line-height:1.76;
-    }
-
-    .section h2{
-
-        margin-bottom:30px;
-    }
-
-    .section p{
-
-        margin-bottom:1.6rem;
+        font-size:1.65rem;
     }
 
 }
@@ -492,17 +493,19 @@ main{
             Ready
         </span>
 
-        <!-- A+ BUTTON INSIDE HEADER -->
+        <div
+            class="floating"
+            id="fontControls">
 
-        <div class="floating" id="fontControls">
-
-            <button class="fab" id="fontToggle">
+            <button
+                class="fab"
+                id="fontToggle">
                 A+
             </button>
 
-            <!-- FONT PANEL -->
-
-            <div class="font-panel" id="fontPanel">
+            <div
+                class="font-panel"
+                id="fontPanel">
 
                 <div class="font-panel-title">
                     Font Size
@@ -510,7 +513,9 @@ main{
 
                 <div class="font-controls">
 
-                    <button class="font-btn" id="fontDown">
+                    <button
+                        class="font-btn"
+                        id="fontDown">
                         −
                     </button>
 
@@ -520,7 +525,9 @@ main{
                         1.00x
                     </div>
 
-                    <button class="font-btn" id="fontUp">
+                    <button
+                        class="font-btn"
+                        id="fontUp">
                         +
                     </button>
 
@@ -545,7 +552,9 @@ main{
 
 <main>
 
-    <section id="reader" class="article">
+    <section
+        id="reader"
+        class="article">
 
         <div class="loading">
             Upload a PDF to begin.
@@ -591,19 +600,20 @@ const fontSizeDisplay =
 
 let currentFontSize = 1.00;
 
+/* STATUS */
+
+function setStatus(text){
+
+    statusText.textContent =
+        text;
+}
+
 /* PROGRESS */
 
 function setProgress(percent){
 
     progressBar.style.width =
         percent + '%';
-}
-
-/* STATUS */
-
-function setStatus(text){
-
-    statusText.textContent = text;
 }
 
 /* FONT */
@@ -623,99 +633,415 @@ function updateFont(){
         currentFontSize.toFixed(2) + 'x';
 }
 
-/* CLEAN TEXT */
+/* CLEAN */
 
 function cleanText(text){
 
     return text
+
         .replace(/\s+/g,' ')
-        .replace(/([.!?])\s+(?=[A-Z])/g,'$1\n\n')
+
         .replace(/-\s+/g,'')
+
         .trim();
 }
 
-/* SPLIT INTO PARTS */
+/* LONG PARAGRAPH SPLITTER */
 
-function splitSections(text){
+function splitLongParagraph(text){
 
-    const paragraphs =
-        text.split(/\n{2,}/);
+    const sentences =
+        text.match(
+            /[^.!?]+[.!?]+/g
+        ) || [text];
 
-    const sections = [];
+    /*
+        IF PARAGRAPH IS
+        VERY LONG,
+        INSERT BREAKS
+        MIDWAY THROUGH
+        NATURAL SENTENCES
+    */
 
-    let chunk = [];
+    if(
+        sentences.length < 7
+    ){
 
-    let wordCount = 0;
+        return [text];
+    }
 
-    paragraphs.forEach((paragraph)=>{
+    const chunks = [];
 
-        chunk.push(paragraph);
+    let current = '';
 
-        wordCount +=
-            paragraph.split(' ').length;
+    sentences.forEach(sentence=>{
 
-        if(wordCount >= 1800){
+        const proposed =
+            current + ' ' + sentence;
 
-            sections.push(
-                chunk.join('\n\n')
+        if(
+            proposed.length > 650
+        ){
+
+            chunks.push(
+                current.trim()
             );
 
-            chunk = [];
+            current =
+                sentence;
 
-            wordCount = 0;
+        }else{
+
+            current +=
+                ' ' + sentence;
         }
 
     });
 
-    if(chunk.length){
+    if(current.trim()){
 
-        sections.push(
-            chunk.join('\n\n')
+        chunks.push(
+            current.trim()
         );
     }
 
-    return sections;
+    return chunks;
+}
+
+/* URL */
+
+function extractUrl(text){
+
+    const match =
+        text.match(
+            /(https?:\/\/[^\s]+|www\.[^\s]+)/i
+        );
+
+    return match
+        ? match[0]
+        : null;
+}
+
+/* LINK */
+
+function createLink(url){
+
+    let href = url;
+
+    if(
+        !href.startsWith('http')
+    ){
+
+        href =
+            'https://' + href;
+    }
+
+    const link =
+        document.createElement('a');
+
+    link.className =
+        'smart-link';
+
+    link.href =
+        href;
+
+    link.target =
+        '_blank';
+
+    link.rel =
+        'noopener noreferrer';
+
+    link.textContent =
+        url;
+
+    return link;
+}
+
+/* DOMINANT FONT */
+
+function findDominantFontSize(items){
+
+    const counts = {};
+
+    items.forEach(item=>{
+
+        if(!item.str.trim()){
+            return;
+        }
+
+        const size =
+            Math.round(item.height);
+
+        counts[size] =
+            (counts[size] || 0) + 1;
+    });
+
+    let dominant = 12;
+
+    let highest = 0;
+
+    Object.entries(counts)
+        .forEach(([size,count])=>{
+
+        if(count > highest){
+
+            highest = count;
+
+            dominant = Number(size);
+        }
+
+    });
+
+    return dominant;
+}
+
+/* BOLD */
+
+function isBold(item){
+
+    const fontName =
+
+        item.fontName
+        ? item.fontName.toLowerCase()
+        : '';
+
+    return (
+
+        fontName.includes('bold')
+
+        ||
+
+        fontName.includes('black')
+
+        ||
+
+        fontName.includes('heavy')
+
+        ||
+
+        fontName.includes('semibold')
+
+    );
+}
+
+/* ALL CAPS */
+
+function isAllCapsHeading(text){
+
+    const cleaned =
+
+        text
+            .replace(/[^A-Z\s]/g,'');
+
+    if(
+        cleaned.length < 5
+    ){
+        return false;
+    }
+
+    return (
+
+        text === text.toUpperCase()
+
+        &&
+
+        /[A-Z]/.test(text)
+
+    );
+}
+
+/* BUILD BLOCKS */
+
+function buildBlocks(
+    items,
+    dominantSize
+){
+
+    const blocks = [];
+
+    let currentBlock = null;
+
+    let lastY = null;
+
+    let lastType = null;
+
+    items.forEach(item=>{
+
+        const text =
+            cleanText(item.str);
+
+        if(!text){
+            return;
+        }
+
+        const fontSize =
+            Math.round(item.height);
+
+        const y =
+            item.transform[5];
+
+        const verticalGap =
+
+            lastY !== null
+
+            &&
+
+            Math.abs(y - lastY);
+
+        const isNewLine =
+
+            verticalGap > 5;
+
+        const allCapsHeading =
+
+            isNewLine
+
+            &&
+
+            isAllCapsHeading(text);
+
+        const isHeading =
+
+            fontSize > dominantSize
+
+            ||
+
+            isBold(item)
+
+            ||
+
+            allCapsHeading;
+
+        const type =
+            isHeading
+            ? 'heading'
+            : 'paragraph';
+
+        const shouldBreak =
+
+            !currentBlock
+
+            ||
+
+            (
+                type !== lastType
+            )
+
+            ||
+
+            (
+                verticalGap > 42
+            );
+
+        if(shouldBreak){
+
+            currentBlock = {
+
+                type,
+
+                text:''
+            };
+
+            blocks.push(currentBlock);
+        }
+
+        currentBlock.text +=
+            (
+                currentBlock.text
+                ? ' '
+                : ''
+            ) + text;
+
+        lastY = y;
+
+        lastType = type;
+
+    });
+
+    return blocks;
 }
 
 /* RENDER */
 
-function renderSections(sections){
+function renderBlocks(blocks){
 
     reader.innerHTML = '';
 
-    sections.forEach((section,index)=>{
+    const wrapper =
+        document.createElement('section');
 
-        const wrapper =
-            document.createElement('section');
+    wrapper.className =
+        'section';
 
-        wrapper.className = 'section';
+    blocks.forEach(block=>{
 
-        const title =
-            document.createElement('h2');
+        const text =
+            block.text.trim();
 
-        title.textContent =
-            `Part ${index + 1}`;
+        if(!text){
+            return;
+        }
 
-        wrapper.appendChild(title);
+        /* LINK */
 
-        const paragraphs =
-            section.split('\n\n');
+        if(
+            extractUrl(text)
+        ){
 
-        paragraphs.forEach(text=>{
+            wrapper.appendChild(
+                createLink(
+                    extractUrl(text)
+                )
+            );
 
-            const p =
-                document.createElement('p');
+            return;
+        }
 
-            p.textContent = text;
+        /* HEADING */
 
-            wrapper.appendChild(p);
+        if(
+            block.type === 'heading'
+        ){
 
-        });
+            const h =
+                document.createElement('h2');
 
-        reader.appendChild(wrapper);
+            h.className =
+                'smart-heading';
+
+            h.textContent =
+                text;
+
+            wrapper.appendChild(h);
+        }
+
+        /* PARAGRAPHS */
+
+        else{
+
+            const pieces =
+                splitLongParagraph(text);
+
+            pieces.forEach(piece=>{
+
+                const p =
+                    document.createElement('p');
+
+                p.className =
+                    'smart-paragraph';
+
+                p.textContent =
+                    piece;
+
+                wrapper.appendChild(p);
+
+            });
+
+        }
 
     });
 
+    reader.appendChild(wrapper);
 }
 
 /* PROCESS PDF */
@@ -726,7 +1052,8 @@ processBtn.addEventListener(
 
     try{
 
-        const file = pdfFile.files[0];
+        const file =
+            pdfFile.files[0];
 
         if(!file){
 
@@ -743,11 +1070,14 @@ processBtn.addEventListener(
             </div>
         `;
 
-        fontControls.style.display = 'none';
+        fontControls.style.display =
+            'none';
 
         setProgress(0);
 
-        setStatus('Loading PDF...');
+        setStatus(
+            'Loading PDF...'
+        );
 
         const buffer =
             await file.arrayBuffer();
@@ -757,37 +1087,19 @@ processBtn.addEventListener(
                 data:buffer
             });
 
-        loadingTask.onProgress =
-            (progress)=>{
-
-            if(progress.total){
-
-                const percent =
-                    (
-                        progress.loaded /
-                        progress.total
-                    ) * 100;
-
-                setProgress(percent * 0.25);
-
-                setStatus(
-                    'Downloading PDF ' +
-                    Math.round(percent) +
-                    '%'
-                );
-            }
-
-        };
-
         const pdf =
             await loadingTask.promise;
 
-        let text = '';
+        const allItems = [];
 
         for(
+
             let pageNumber = 1;
+
             pageNumber <= pdf.numPages;
+
             pageNumber++
+
         ){
 
             setStatus(
@@ -795,40 +1107,46 @@ processBtn.addEventListener(
             );
 
             const page =
-                await pdf.getPage(pageNumber);
+                await pdf.getPage(
+                    pageNumber
+                );
 
             const content =
                 await page.getTextContent();
 
-            const pageText =
-                content.items
-                    .map(item=>item.str)
-                    .join(' ');
+            allItems.push(
+                ...content.items
+            );
 
-            text += '\n\n' + pageText;
-
-            const pageProgress =
+            const progress =
                 (
                     pageNumber /
                     pdf.numPages
-                ) * 75;
+                ) * 100;
 
-            setProgress(
-                25 + pageProgress
-            );
+            setProgress(progress);
         }
 
-        setStatus('Cleaning text...');
+        setStatus(
+            'Analyzing document structure...'
+        );
 
-        const cleanedText =
-            cleanText(text);
+        const dominantSize =
+            findDominantFontSize(
+                allItems
+            );
 
-        setStatus('Formatting parts...');
+        const blocks =
+            buildBlocks(
+                allItems,
+                dominantSize
+            );
 
-        const sections =
-            splitSections(cleanedText);
+        setStatus(
+            'Rendering document...'
+        );
 
-        renderSections(sections);
+        renderBlocks(blocks);
 
         updateFont();
 
@@ -862,27 +1180,24 @@ fontToggle.addEventListener(
     'click',
     ()=>{
 
-    if(
+    fontPanel.style.display =
+
         fontPanel.style.display ===
         'block'
-    ){
 
-        fontPanel.style.display =
-            'none';
+        ? 'none'
 
-    }else{
-
-        fontPanel.style.display =
-            'block';
-    }
+        : 'block';
 
 });
 
-/* INCREASE FONT */
+/* FONT UP */
 
 document
     .getElementById('fontUp')
-    .addEventListener('click',()=>{
+    .addEventListener(
+        'click',
+        ()=>{
 
         currentFontSize += 0.08;
 
@@ -890,11 +1205,13 @@ document
 
 });
 
-/* DECREASE FONT */
+/* FONT DOWN */
 
 document
     .getElementById('fontDown')
-    .addEventListener('click',()=>{
+    .addEventListener(
+        'click',
+        ()=>{
 
         currentFontSize =
             Math.max(
@@ -910,9 +1227,9 @@ document
 
 document.addEventListener(
     'click',
-    (event)=>{
+    event=>{
 
-    const clickedInsidePanel =
+    const insidePanel =
         fontPanel.contains(
             event.target
         );
@@ -923,7 +1240,8 @@ document.addEventListener(
         );
 
     if(
-        !clickedInsidePanel &&
+        !insidePanel
+        &&
         !clickedToggle
     ){
 
@@ -932,12 +1250,26 @@ document.addEventListener(
     }
 
 });
-    if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./service-worker.js');
-  });
+
+/* SERVICE WORKER */
+
+if(
+    'serviceWorker'
+    in navigator
+){
+
+    window.addEventListener(
+        'load',
+        ()=>{
+
+        navigator.serviceWorker.register(
+            './service-worker.js'
+        );
+
+    });
+
 }
-    
+
 </script>
 
 </body>
