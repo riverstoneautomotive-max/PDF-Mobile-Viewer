@@ -347,15 +347,6 @@ main{
     text-align:justify;
 }
 
-.loading{
-
-    text-align:center;
-
-    padding:90px 20px;
-
-    color:var(--muted);
-}
-
 /* INLINE FORMATTING */
 
 .inline-italic{
@@ -363,7 +354,7 @@ main{
     font-style:italic;
 }
 
-.smart-link{
+.inline-link{
 
     color:var(--accent-light);
 
@@ -371,14 +362,23 @@ main{
 
     text-decoration-thickness:1px;
 
-    text-underline-offset:2px;
-
-    overflow-wrap:anywhere;
+    word-break:break-word;
 }
 
-.smart-link:hover{
+.inline-link:hover{
 
-    color:#f0ddb0;
+    opacity:0.88;
+}
+
+/* LOADING */
+
+.loading{
+
+    text-align:center;
+
+    padding:90px 20px;
+
+    color:var(--muted);
 }
 
 /* NOTES */
@@ -1214,8 +1214,11 @@ function updateFont(){
 function cleanText(text){
 
     return text
+
         .replace(/\s+/g,' ')
+
         .replace(/-\s+/g,'')
+
         .trim();
 
 }
@@ -1313,34 +1316,117 @@ function isItalic(item){
 
 }
 
-/* LINK DETECTION */
+/* FORMAT INLINE */
 
-function extractSmartLinks(text){
+function buildInlineParts(items){
 
-    const matches = [];
+    const parts = [];
+
+    items.forEach(item=>{
+
+        const text =
+            cleanText(item.str);
+
+        if(!text){
+            return;
+        }
+
+        parts.push({
+
+            text,
+
+            italic:
+                isItalic(item)
+
+        });
+
+    });
+
+    return parts;
+
+}
+
+/* SMART LINK DETECTION */
+
+function normalizeBrokenUrl(text){
+
+    let result = '';
+
+    let visibleCount = 0;
+
+    for(
+        let i = 0;
+        i < text.length;
+        i++
+    ){
+
+        const char =
+            text[i];
+
+        if(
+            visibleCount < 7
+            &&
+            (
+                char === ' '
+                ||
+                char === '\n'
+            )
+        ){
+
+            continue;
+
+        }
+
+        result += char;
+
+        if(
+            char !== ' '
+            &&
+            char !== '\n'
+        ){
+
+            visibleCount++;
+
+        }
+
+    }
+
+    return result;
+
+}
+
+function extractLinks(text){
+
+    const links = [];
 
     const regex =
-        /(https?:\/\/|www\.)/gi;
+        /(https?:\/\/|www\.)[\s\S]+?/gi;
 
     let match;
 
     while(
-        (match = regex.exec(text))
-        !== null
+        (
+            match =
+            regex.exec(text)
+        ) !== null
     ){
 
-        const start =
-            match.index;
+        let value =
+            text.slice(match.index);
 
-        let end =
-            start;
+        value =
+            normalizeBrokenUrl(value);
 
-        let validCount = 0;
+        let finalUrl = '';
 
-        while(end < text.length){
+        for(
+            let i = 0;
+            i < value.length;
+            i++
+        ){
 
             const char =
-                text[end];
+                value[i];
 
             if(
                 char === ' '
@@ -1350,39 +1436,24 @@ function extractSmartLinks(text){
                 char === ']'
             ){
 
-                if(validCount >= 7){
-                    break;
-                }
+                break;
             }
 
-            if(
-                char !== ' '
-                &&
-                char !== '\n'
-                &&
-                char !== '\r'
-            ){
-
-                validCount++;
-            }
-
-            end++;
+            finalUrl += char;
 
         }
 
-        const raw =
-            text.slice(start,end)
-            .trim();
+        if(
+            finalUrl.length >= 7
+        ){
 
-        if(raw.length >= 7){
+            links.push({
 
-            matches.push({
+                start:
+                    match.index,
 
-                start,
-
-                end,
-
-                raw
+                raw:
+                    finalUrl
 
             });
 
@@ -1390,78 +1461,175 @@ function extractSmartLinks(text){
 
     }
 
-    return matches;
+    return links;
 
 }
 
-/* INLINE FORMAT */
+/* INLINE HTML */
 
-function buildFormattedFragment(text){
+function buildInlineHTML(parts){
+
+    let rawText = '';
+
+    const ranges = [];
+
+    parts.forEach(part=>{
+
+        const start =
+            rawText.length;
+
+        rawText += part.text;
+
+        const end =
+            rawText.length;
+
+        ranges.push({
+
+            start,
+
+            end,
+
+            italic:
+                part.italic
+
+        });
+
+        rawText += ' ';
+
+    });
+
+    rawText =
+        rawText.trimEnd();
+
+    const links =
+        extractLinks(rawText);
 
     const fragment =
         document.createDocumentFragment();
 
-    const links =
-        extractSmartLinks(text);
+    let i = 0;
 
-    if(!links.length){
+    while(
+        i < rawText.length
+    ){
 
-        fragment.appendChild(
-            document.createTextNode(text)
-        );
-
-        return fragment;
-
-    }
-
-    let cursor = 0;
-
-    links.forEach(link=>{
-
-        if(link.start > cursor){
-
-            fragment.appendChild(
-                document.createTextNode(
-                    text.slice(cursor,link.start)
-                )
+        const link =
+            links.find(
+                item=>
+                item.start === i
             );
+
+        if(link){
+
+            const a =
+                document.createElement('a');
+
+            let href =
+                link.raw;
+
+            if(
+                href.startsWith('www.')
+            ){
+
+                href =
+                    'https://' +
+                    href;
+
+            }
+
+            a.href =
+                href;
+
+            a.target =
+                '_blank';
+
+            a.rel =
+                'noopener noreferrer';
+
+            a.className =
+                'inline-link';
+
+            a.textContent =
+                link.raw;
+
+            fragment.appendChild(a);
+
+            i +=
+                link.raw.length;
+
+            continue;
 
         }
 
-        const anchor =
-            document.createElement('a');
+        const range =
+            ranges.find(
+                item=>
+                i >= item.start
+                &&
+                i < item.end
+            );
 
-        anchor.className =
-            'smart-link';
+        const char =
+            rawText[i];
 
-        anchor.target =
-            '_blank';
+        if(!range){
 
-        anchor.rel =
-            'noopener noreferrer';
+            fragment.appendChild(
+                document.createTextNode(char)
+            );
 
-        anchor.textContent =
-            link.raw;
+            i++;
 
-        anchor.href =
-            link.raw.startsWith('www.')
-            ? 'https://' + link.raw
-            : link.raw;
+            continue;
 
-        fragment.appendChild(anchor);
+        }
 
-        cursor =
-            link.end;
+        const span =
+            document.createElement(
+                range.italic
+                ? 'em'
+                : 'span'
+            );
 
-    });
+        if(range.italic){
 
-    if(cursor < text.length){
+            span.className =
+                'inline-italic';
+        }
 
-        fragment.appendChild(
-            document.createTextNode(
-                text.slice(cursor)
-            )
-        );
+        let chunk = '';
+
+        while(
+
+            i < rawText.length
+
+            &&
+
+            i < range.end
+
+        ){
+
+            const nextLink =
+                links.find(
+                    item=>
+                    item.start === i
+                );
+
+            if(nextLink){
+                break;
+            }
+
+            chunk +=
+                rawText[i];
+
+            i++;
+
+        }
+
+        span.textContent =
+            chunk;
+
+        fragment.appendChild(span);
 
     }
 
@@ -1532,7 +1700,7 @@ function buildBlocks(
 
                 type,
 
-                spans:[]
+                items:[]
 
             };
 
@@ -1540,13 +1708,7 @@ function buildBlocks(
 
         }
 
-        current.spans.push({
-
-            text,
-
-            italic:isItalic(item)
-
-        });
+        current.items.push(item);
 
         lastY = y;
 
@@ -1572,65 +1734,48 @@ function renderBlocks(blocks){
 
     blocks.forEach(block=>{
 
-        if(
-            !block.spans.length
-        ){
+        const parts =
+            buildInlineParts(
+                block.items
+            );
+
+        if(!parts.length){
             return;
         }
 
-        const element =
+        if(
             block.type === 'heading'
-            ? document.createElement('h2')
-            : document.createElement('p');
+        ){
 
-        element.className =
-            block.type === 'heading'
-            ? 'smart-heading'
-            : 'smart-paragraph';
+            const h =
+                document.createElement('h2');
 
-        block.spans.forEach(
-            (span,index)=>{
+            h.className =
+                'smart-heading';
 
-            if(index > 0){
+            h.appendChild(
+                buildInlineHTML(parts)
+            );
 
-                element.appendChild(
-                    document.createTextNode(' ')
-                );
+            wrapper.appendChild(h);
 
-            }
+        }
 
-            const content =
-                buildFormattedFragment(
-                    span.text
-                );
+        else{
 
-            if(span.italic){
+            const p =
+                document.createElement('p');
 
-                const italic =
-                    document.createElement('span');
+            p.className =
+                'smart-paragraph';
 
-                italic.className =
-                    'inline-italic';
+            p.appendChild(
+                buildInlineHTML(parts)
+            );
 
-                italic.appendChild(content);
+            wrapper.appendChild(p);
 
-                element.appendChild(
-                    italic
-                );
-
-            }else{
-
-                element.appendChild(
-                    content
-                );
-
-            }
-
-        });
-
-        wrapper.appendChild(
-            element
-        );
+        }
 
     });
 
@@ -1858,6 +2003,8 @@ function createNotebook(
             totalHeight / 40
         );
 
+    /* RULING */
+
     for(
         let i=0;
         i<lineCount;
@@ -1876,6 +2023,8 @@ function createNotebook(
         rulingLayer.appendChild(line);
 
     }
+
+    /* CELLS */
 
     for(
         let i=0;
@@ -1917,6 +2066,8 @@ function createNotebook(
             updateCoveredCells();
 
         });
+
+        /* OPEN */
 
         input.addEventListener(
             'click',
@@ -1964,6 +2115,8 @@ function createNotebook(
             input.focus();
 
         });
+
+        /* INPUT */
 
         input.addEventListener(
             'input',
