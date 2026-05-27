@@ -2173,84 +2173,9 @@ function createNotebook(
 
 }
 
-/* PROCESS SAVED TEXT */
-
-async function processRecord(record){
-
-    try{
-
-        currentPdfId =
-            record.id;
-
-        localStorage.setItem(
-            LAST_KEY,
-            record.id
-        );
-
-        reader.innerHTML = `
-            <div class="loading">
-                Loading extracted text...
-            </div>
-        `;
-
-        setProgress(100);
-
-        renderBlocks(
-            record.blocks || []
-        );
-
-        requestAnimationFrame(()=>{
-
-            createNotebook(
-                reader.scrollHeight,
-                record.notes || {}
-            );
-
-        });
-
-        fontControls.style.display =
-            'block';
-
-    }catch(error){
-
-        console.error(error);
-
-        try{
-
-            await removeRecord(record.id);
-
-            if(
-                localStorage.getItem(LAST_KEY)
-                === record.id
-            ){
-
-                localStorage.removeItem(
-                    LAST_KEY
-                );
-
-            }
-
-        }catch(removeError){
-
-            console.error(removeError);
-
-        }
-
-        reader.innerHTML = `
-            <div class="loading">
-                Corrupted saved text removed.
-            </div>
-        `;
-
-        setProgress(0);
-
-    }
-
-}
-
 /* EXTRACT PDF */
 
-async function extractPdf(file){
+async function extractPdfData(file){
 
     const buffer =
         await file.arrayBuffer();
@@ -2295,10 +2220,108 @@ async function extractPdf(file){
             allItems
         );
 
-    return buildBlocks(
-        allItems,
-        dominant
-    );
+    const blocks =
+        buildBlocks(
+            allItems,
+            dominant
+        );
+
+    return {
+
+        dominant,
+
+        blocks
+
+    };
+
+}
+
+/* PROCESS SAVED */
+
+async function processRecord(record){
+
+    try{
+
+        currentPdfId =
+            record.id;
+
+        localStorage.setItem(
+            LAST_KEY,
+            record.id
+        );
+
+        reader.innerHTML = `
+            <div class="loading">
+                Loading extracted text...
+            </div>
+        `;
+
+        setProgress(0);
+
+        if(
+            !record.blocks
+            ||
+            !Array.isArray(record.blocks)
+        ){
+
+            throw new Error(
+                'Missing extracted text data.'
+            );
+
+        }
+
+        renderBlocks(
+            record.blocks
+        );
+
+        requestAnimationFrame(()=>{
+
+            createNotebook(
+                reader.scrollHeight,
+                record.notes || {}
+            );
+
+        });
+
+        setProgress(100);
+
+        fontControls.style.display =
+            'block';
+
+    }catch(error){
+
+        console.error(error);
+
+        try{
+
+            await removeRecord(record.id);
+
+            if(
+                localStorage.getItem(LAST_KEY)
+                === record.id
+            ){
+
+                localStorage.removeItem(
+                    LAST_KEY
+                );
+
+            }
+
+        }catch(removeError){
+
+            console.error(removeError);
+
+        }
+
+        reader.innerHTML = `
+            <div class="loading">
+                Corrupted PDF removed.
+            </div>
+        `;
+
+        setProgress(0);
+
+    }
 
 }
 
@@ -2325,8 +2348,8 @@ async function processNewFile(file){
 
         setProgress(0);
 
-        const blocks =
-            await extractPdf(file);
+        const extracted =
+            await extractPdfData(file);
 
         const record = {
 
@@ -2336,7 +2359,8 @@ async function processNewFile(file){
             name:
                 file.name,
 
-            blocks,
+            blocks:
+                extracted.blocks,
 
             notes:{},
 
@@ -2355,7 +2379,7 @@ async function processNewFile(file){
 
         reader.innerHTML = `
             <div class="loading">
-                Failed to extract PDF.
+                Failed to process PDF.
             </div>
         `;
 
