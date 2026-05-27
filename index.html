@@ -393,18 +393,23 @@ main{
 
 .notes-wrapper{
 
-    position:relative;
-
     width:100%;
 
     max-width:860px;
 
     margin:0 auto;
 
-    padding:0 24px 0;
+    padding:0 24px 120px;
 }
 
-/* RULING */
+.notes-inner{
+
+    position:relative;
+
+    width:100%;
+}
+
+/* RULING LAYER */
 
 .ruling-layer{
 
@@ -452,7 +457,7 @@ main{
     height:40px;
 }
 
-/* TEXTAREA */
+/* INPUT */
 
 .note-input{
 
@@ -497,11 +502,11 @@ main{
     z-index:5;
 }
 
-/* KEEP RULING VISIBLE */
+/* RULING REMAINS VISIBLE */
 
 .note-input.editing{
 
-    background:rgba(17,19,15,0.08);
+    background:rgba(17,19,15,0.05);
 }
 
 /* CLOSED */
@@ -1284,7 +1289,7 @@ function renderBlocks(blocks){
 function autoResize(textarea){
 
     textarea.style.height =
-        'auto';
+        '40px';
 
     textarea.style.height =
         textarea.scrollHeight + 'px';
@@ -1407,7 +1412,13 @@ function createNotebook(
 
     notesWrapper.innerHTML = '';
 
-    notesWrapper.style.height =
+    const notesInner =
+        document.createElement('div');
+
+    notesInner.className =
+        'notes-inner';
+
+    notesInner.style.height =
         totalHeight + 'px';
 
     const rulingLayer =
@@ -1483,7 +1494,11 @@ function createNotebook(
         input.value =
             savedNotes[i] || '';
 
-        autoResize(input);
+        requestAnimationFrame(()=>{
+
+            autoResize(input);
+
+        });
 
         /* OPEN */
 
@@ -1548,12 +1563,16 @@ function createNotebook(
 
     }
 
-    notesWrapper.appendChild(
+    notesInner.appendChild(
         rulingLayer
     );
 
-    notesWrapper.appendChild(
+    notesInner.appendChild(
         cellsLayer
+    );
+
+    notesWrapper.appendChild(
+        notesInner
     );
 
     updateFont();
