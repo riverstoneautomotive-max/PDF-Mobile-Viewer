@@ -76,6 +76,7 @@ body{
 }
 
 body{
+
     touch-action:pan-y;
 }
 
@@ -120,12 +121,6 @@ body{
 
 header{
 
-    position:sticky;
-
-    top:0;
-
-    z-index:500;
-
     width:100%;
 
     padding:16px;
@@ -135,6 +130,13 @@ header{
     backdrop-filter:blur(14px);
 
     border-bottom:1px solid var(--border);
+}
+
+.header-btn{
+
+    flex:1;
+
+    text-align:center;
 }
 
 .toolbar{
@@ -148,9 +150,13 @@ header{
     width:100%;
 }
 
-.header-btn{
+input[type="file"]{
 
-    flex:1;
+    color:var(--muted);
+
+    font-family:inherit;
+
+    max-width:170px;
 }
 
 button{
@@ -211,23 +217,15 @@ button:hover{
     transition:width 0.25s ease;
 }
 
-/* FONT CONTROLS */
+/* FONT */
 
 .font-row{
-
-    position:sticky;
-
-    top:88px;
-
-    z-index:450;
 
     display:flex;
 
     justify-content:flex-end;
 
     padding:12px 16px 0;
-
-    pointer-events:none;
 }
 
 .floating{
@@ -235,15 +233,13 @@ button:hover{
     display:none;
 
     position:relative;
-
-    pointer-events:auto;
 }
 
 .fab{
 
-    width:42px;
+    width:38px;
 
-    height:42px;
+    height:38px;
 
     border-radius:999px;
 
@@ -266,11 +262,11 @@ button:hover{
 
     position:absolute;
 
-    top:54px;
+    top:50px;
 
     right:0;
 
-    width:180px;
+    width:170px;
 
     background:#1a1c17;
 
@@ -313,11 +309,11 @@ main{
 
     width:100%;
 
-    max-width:900px;
+    max-width:860px;
 
     margin:0 auto;
 
-    padding:0 10px 120px;
+    padding:0 24px 120px;
 }
 
 .section{
@@ -335,7 +331,7 @@ main{
 
     font-size:2rem;
 
-    line-height:1.12;
+    line-height:1.14;
 
     margin-top:3rem;
 
@@ -346,12 +342,12 @@ main{
 
 .smart-paragraph{
 
-    margin:0 0 1.45rem;
+    margin:0 0 1.55rem;
 
     text-align:justify;
 }
 
-/* INLINE */
+/* INLINE FORMATTING */
 
 .inline-italic{
 
@@ -367,6 +363,11 @@ main{
     text-decoration-thickness:1px;
 
     word-break:break-word;
+}
+
+.inline-link:hover{
+
+    opacity:0.88;
 }
 
 /* LOADING */
@@ -388,12 +389,6 @@ main{
 }
 
 .notes-header{
-
-    position:sticky;
-
-    top:0;
-
-    z-index:400;
 
     padding:16px;
 
@@ -427,11 +422,11 @@ main{
 
     width:100%;
 
-    max-width:900px;
+    max-width:860px;
 
     margin:0 auto;
 
-    padding:0 10px 120px;
+    padding:0 24px 120px;
 }
 
 .notes-inner{
@@ -440,6 +435,8 @@ main{
 
     width:100%;
 }
+
+/* RULING LAYER */
 
 .ruling-layer{
 
@@ -465,6 +462,8 @@ main{
     background:rgba(157,153,135,0.18);
 }
 
+/* CELLS */
+
 .cells-layer{
 
     position:absolute;
@@ -482,8 +481,12 @@ main{
 
     right:0;
 
-    min-height:40px;
+    height:40px;
+
+    overflow:visible;
 }
+
+/* INPUT */
 
 .note-input{
 
@@ -521,27 +524,37 @@ main{
 
     white-space:pre-wrap;
 
+    display:block;
+
     caret-color:var(--accent-light);
 
     z-index:10;
 }
 
+/* RULING REMAINS VISIBLE */
+
 .note-input.editing{
 
-    background:rgba(255,255,255,0.03);
+    background:rgba(17,19,15,0.05);
 }
+
+/* CLOSED */
 
 .note-input.closed{
 
     cursor:text;
 }
 
+/* DISABLED */
+
 .note-input.disabled{
 
     pointer-events:none;
 
-    opacity:0.55;
+    opacity:0.7;
 }
+
+/* COVERED CELL FIX */
 
 .note-input.covered{
 
@@ -570,8 +583,6 @@ main{
     position:sticky;
 
     top:0;
-
-    z-index:10;
 
     padding:16px;
 
@@ -636,15 +647,6 @@ main{
     cursor:pointer;
 }
 
-.library-meta{
-
-    color:var(--muted);
-
-    font-size:13px;
-
-    margin-top:4px;
-}
-
 .remove-btn{
 
     width:30px;
@@ -662,7 +664,7 @@ main{
     font-size:16px;
 }
 
-/* IMPORT */
+/* IMPORT MODAL */
 
 .import-overlay{
 
@@ -768,40 +770,36 @@ main{
         class="panels"
         id="panels">
 
-        <!-- READER -->
+        <!-- PDF -->
 
         <div
             class="panel"
             id="readerPanel">
 
-            <header>
+<header>
 
-                <div class="toolbar">
+    <div class="toolbar">
 
-                    <button
-                        id="libraryBtn"
-                        class="header-btn">
-                        Library
-                    </button>
+        <button id="libraryBtn" class="header-btn">
+            Library
+        </button>
 
-                    <button
-                        id="importBtn"
-                        class="header-btn">
-                        Import
-                    </button>
+        <button id="importBtn" class="header-btn">
+            Import
+        </button>
 
-                </div>
+    </div>
 
-                <div class="progress-wrapper">
+    <div class="progress-wrapper">
 
-                    <div
-                        class="progress-bar"
-                        id="progressBar">
-                    </div>
+        <div
+            class="progress-bar"
+            id="progressBar">
+        </div>
 
-                </div>
+    </div>
 
-            </header>
+</header>
 
             <div class="font-row">
 
@@ -915,7 +913,7 @@ main{
 
 </div>
 
-<!-- IMPORT -->
+<!-- IMPORT MODAL -->
 
 <div
     class="import-overlay"
@@ -1031,20 +1029,20 @@ const fontToggle =
 const fontSizeDisplay =
     document.getElementById('fontSizeDisplay');
 
-/* DATABASE */
+/* STORAGE */
 
 const DB_NAME =
     'ai-pdf-reader';
 
 const STORE_NAME =
-    'documents';
+    'pdfs';
 
 const LAST_KEY =
-    'last-opened-document';
+    'last-opened-pdf';
 
 /* STATE */
 
-let currentDocId = null;
+let currentPdfId = null;
 
 let currentFontSize = 1.00;
 
@@ -1059,7 +1057,7 @@ function openDatabase(){
     return new Promise((resolve,reject)=>{
 
         const request =
-            indexedDB.open(DB_NAME,2);
+            indexedDB.open(DB_NAME,1);
 
         request.onupgradeneeded =
             event=>{
@@ -1216,13 +1214,16 @@ function updateFont(){
 function cleanText(text){
 
     return text
+
         .replace(/\s+/g,' ')
+
         .replace(/-\s+/g,'')
+
         .trim();
 
 }
 
-/* FONT */
+/* DOMINANT FONT */
 
 function findDominantFontSize(items){
 
@@ -1265,7 +1266,7 @@ function findDominantFontSize(items){
 
 }
 
-/* STYLE */
+/* BOLD */
 
 function isBold(item){
 
@@ -1294,6 +1295,8 @@ function isBold(item){
 
 }
 
+/* ITALIC */
+
 function isItalic(item){
 
     const font =
@@ -1313,7 +1316,84 @@ function isItalic(item){
 
 }
 
-/* URLS */
+/* FORMAT INLINE */
+
+function buildInlineParts(items){
+
+    const parts = [];
+
+    items.forEach(item=>{
+
+        const text =
+            cleanText(item.str);
+
+        if(!text){
+            return;
+        }
+
+        parts.push({
+
+            text,
+
+            italic:
+                isItalic(item)
+
+        });
+
+    });
+
+    return parts;
+
+}
+
+/* SMART LINK DETECTION */
+
+function normalizeBrokenUrl(text){
+
+    let result = '';
+
+    let visibleCount = 0;
+
+    for(
+        let i = 0;
+        i < text.length;
+        i++
+    ){
+
+        const char =
+            text[i];
+
+        if(
+            visibleCount < 7
+            &&
+            (
+                char === ' '
+                ||
+                char === '\n'
+            )
+        ){
+
+            continue;
+
+        }
+
+        result += char;
+
+        if(
+            char !== ' '
+            &&
+            char !== '\n'
+        ){
+
+            visibleCount++;
+
+        }
+
+    }
+
+    return result;
+
+}
 
 function extractLinks(text){
 
@@ -1343,15 +1423,10 @@ function extractLinks(text){
                 text[i];
 
             const isWhitespace =
-
                 char === ' '
-
                 ||
-
                 char === '\n'
-
                 ||
-
                 char === '\t';
 
             if(
@@ -1361,6 +1436,7 @@ function extractLinks(text){
             ){
 
                 i++;
+
                 continue;
 
             }
@@ -1420,7 +1496,7 @@ function extractLinks(text){
 
 }
 
-/* HTML */
+/* INLINE HTML */
 
 function buildInlineHTML(parts){
 
@@ -1487,7 +1563,8 @@ function buildInlineHTML(parts){
             ){
 
                 href =
-                    'https://' + href;
+                    'https://' +
+                    href;
 
             }
 
@@ -1591,7 +1668,7 @@ function buildInlineHTML(parts){
 
 }
 
-/* BLOCKS */
+/* BUILD BLOCKS */
 
 function buildBlocks(
     items,
@@ -1654,7 +1731,7 @@ function buildBlocks(
 
                 type,
 
-                parts:[]
+                items:[]
 
             };
 
@@ -1662,14 +1739,7 @@ function buildBlocks(
 
         }
 
-        current.parts.push({
-
-            text,
-
-            italic:
-                isItalic(item)
-
-        });
+        current.items.push(item);
 
         lastY = y;
 
@@ -1695,9 +1765,12 @@ function renderBlocks(blocks){
 
     blocks.forEach(block=>{
 
-        if(
-            !block.parts.length
-        ){
+        const parts =
+            buildInlineParts(
+                block.items
+            );
+
+        if(!parts.length){
             return;
         }
 
@@ -1712,9 +1785,7 @@ function renderBlocks(blocks){
                 'smart-heading';
 
             h.appendChild(
-                buildInlineHTML(
-                    block.parts
-                )
+                buildInlineHTML(parts)
             );
 
             wrapper.appendChild(h);
@@ -1730,9 +1801,7 @@ function renderBlocks(blocks){
                 'smart-paragraph';
 
             p.appendChild(
-                buildInlineHTML(
-                    block.parts
-                )
+                buildInlineHTML(parts)
             );
 
             wrapper.appendChild(p);
@@ -1747,7 +1816,7 @@ function renderBlocks(blocks){
 
 }
 
-/* NOTEBOOK */
+/* AUTO RESIZE */
 
 function autoResize(textarea){
 
@@ -1758,6 +1827,8 @@ function autoResize(textarea){
         textarea.scrollHeight + 'px';
 
 }
+
+/* COVERED CELLS */
 
 function updateCoveredCells(){
 
@@ -1803,8 +1874,7 @@ function updateCoveredCells(){
                 );
 
             if(
-                covered
-                &&
+                covered &&
                 covered !== input
             ){
 
@@ -1819,6 +1889,54 @@ function updateCoveredCells(){
     });
 
 }
+
+/* SAVE NOTES */
+
+async function saveNotes(){
+
+    if(!currentPdfId){
+        return;
+    }
+
+    const notes = {};
+
+    document
+        .querySelectorAll('.note-input')
+        .forEach(input=>{
+
+        if(
+            input.value.trim()
+        ){
+
+            notes[
+                input.dataset.line
+            ] = input.value;
+
+        }
+
+    });
+
+    const records =
+        await getAllRecords();
+
+    const record =
+        records.find(
+            item=>
+            item.id === currentPdfId
+        );
+
+    if(!record){
+        return;
+    }
+
+    record.notes =
+        notes;
+
+    await saveRecord(record);
+
+}
+
+/* ENABLE / DISABLE */
 
 function updateCellAvailability(){
 
@@ -1848,49 +1966,7 @@ function updateCellAvailability(){
 
 }
 
-async function saveNotes(){
-
-    if(!currentDocId){
-        return;
-    }
-
-    const notes = {};
-
-    document
-        .querySelectorAll('.note-input')
-        .forEach(input=>{
-
-        if(
-            input.value.trim()
-        ){
-
-            notes[
-                input.dataset.line
-            ] = input.value;
-
-        }
-
-    });
-
-    const records =
-        await getAllRecords();
-
-    const record =
-        records.find(
-            item=>
-            item.id === currentDocId
-        );
-
-    if(!record){
-        return;
-    }
-
-    record.notes =
-        notes;
-
-    await saveRecord(record);
-
-}
+/* CLOSE INPUT */
 
 async function closeCurrentInput(){
 
@@ -1923,6 +1999,8 @@ async function closeCurrentInput(){
 
 }
 
+/* NOTEBOOK */
+
 function createNotebook(
     totalHeight,
     savedNotes={}
@@ -1952,7 +2030,9 @@ function createNotebook(
         'cells-layer';
 
     const lineCount =
-        Math.ceil(totalHeight / 40);
+        Math.ceil(
+            totalHeight / 40
+        );
 
     for(
         let i=0;
@@ -2025,7 +2105,9 @@ function createNotebook(
                     'covered'
                 )
             ){
+
                 return;
+
             }
 
             if(
@@ -2033,7 +2115,9 @@ function createNotebook(
                 &&
                 activeInput !== input
             ){
+
                 return;
+
             }
 
             input.readOnly = false;
@@ -2089,7 +2173,82 @@ function createNotebook(
 
 }
 
-/* EXTRACTION */
+/* PROCESS SAVED TEXT */
+
+async function processRecord(record){
+
+    try{
+
+        currentPdfId =
+            record.id;
+
+        localStorage.setItem(
+            LAST_KEY,
+            record.id
+        );
+
+        reader.innerHTML = `
+            <div class="loading">
+                Loading extracted text...
+            </div>
+        `;
+
+        setProgress(100);
+
+        renderBlocks(
+            record.blocks || []
+        );
+
+        requestAnimationFrame(()=>{
+
+            createNotebook(
+                reader.scrollHeight,
+                record.notes || {}
+            );
+
+        });
+
+        fontControls.style.display =
+            'block';
+
+    }catch(error){
+
+        console.error(error);
+
+        try{
+
+            await removeRecord(record.id);
+
+            if(
+                localStorage.getItem(LAST_KEY)
+                === record.id
+            ){
+
+                localStorage.removeItem(
+                    LAST_KEY
+                );
+
+            }
+
+        }catch(removeError){
+
+            console.error(removeError);
+
+        }
+
+        reader.innerHTML = `
+            <div class="loading">
+                Corrupted saved text removed.
+            </div>
+        `;
+
+        setProgress(0);
+
+    }
+
+}
+
+/* EXTRACT PDF */
 
 async function extractPdf(file){
 
@@ -2136,117 +2295,14 @@ async function extractPdf(file){
             allItems
         );
 
-    const blocks =
-        buildBlocks(
-            allItems,
-            dominant
-        );
-
-    return {
-
-        dominant,
-
-        blocks
-
-    };
+    return buildBlocks(
+        allItems,
+        dominant
+    );
 
 }
 
-/* LOAD DOCUMENT */
-
-async function processRecord(record){
-
-    try{
-
-        currentDocId =
-            record.id;
-
-        localStorage.setItem(
-            LAST_KEY,
-            record.id
-        );
-
-        reader.innerHTML = `
-            <div class="loading">
-                Loading document...
-            </div>
-        `;
-
-        setProgress(0);
-
-        /* STORED EXTRACTED TEXT */
-
-        if(
-            !record.blocks
-            ||
-            !Array.isArray(record.blocks)
-        ){
-
-            throw new Error(
-                'Missing extracted text.'
-            );
-
-        }
-
-        renderBlocks(
-            record.blocks
-        );
-
-        requestAnimationFrame(()=>{
-
-            createNotebook(
-                reader.scrollHeight,
-                record.notes || {}
-            );
-
-        });
-
-        fontControls.style.display =
-            'block';
-
-        setProgress(100);
-
-    }catch(error){
-
-        console.error(error);
-
-        try{
-
-            await removeRecord(
-                record.id
-            );
-
-            if(
-                localStorage.getItem(
-                    LAST_KEY
-                ) === record.id
-            ){
-
-                localStorage.removeItem(
-                    LAST_KEY
-                );
-
-            }
-
-        }catch(removeError){
-
-            console.error(removeError);
-
-        }
-
-        reader.innerHTML = `
-            <div class="loading">
-                Corrupted saved document removed.
-            </div>
-        `;
-
-        setProgress(0);
-
-    }
-
-}
-
-/* IMPORT NEW FILE */
+/* NEW FILE */
 
 async function processNewFile(file){
 
@@ -2257,7 +2313,6 @@ async function processNewFile(file){
         );
 
         return;
-
     }
 
     try{
@@ -2270,7 +2325,7 @@ async function processNewFile(file){
 
         setProgress(0);
 
-        const extracted =
+        const blocks =
             await extractPdf(file);
 
         const record = {
@@ -2281,8 +2336,7 @@ async function processNewFile(file){
             name:
                 file.name,
 
-            blocks:
-                extracted.blocks,
+            blocks,
 
             notes:{},
 
@@ -2324,12 +2378,11 @@ async function renderLibrary(){
 
         libraryList.innerHTML = `
             <div class="loading">
-                No saved documents yet.
+                No PDFs saved yet.
             </div>
         `;
 
         return;
-
     }
 
     records
@@ -2345,12 +2398,6 @@ async function renderLibrary(){
         item.className =
             'library-item';
 
-        const info =
-            document.createElement('div');
-
-        info.style.flex =
-            '1';
-
         const name =
             document.createElement('div');
 
@@ -2360,20 +2407,7 @@ async function renderLibrary(){
         name.textContent =
             record.name;
 
-        const meta =
-            document.createElement('div');
-
-        meta.className =
-            'library-meta';
-
-        meta.textContent =
-            'Stored extracted text';
-
-        info.appendChild(name);
-
-        info.appendChild(meta);
-
-        info.addEventListener(
+        name.addEventListener(
             'click',
             async ()=>{
 
@@ -2409,7 +2443,7 @@ async function renderLibrary(){
 
         });
 
-        item.appendChild(info);
+        item.appendChild(name);
 
         item.appendChild(remove);
 
@@ -2451,7 +2485,7 @@ document
 
 });
 
-/* IMPORT */
+/* BUTTONS */
 
 processBtn.addEventListener(
     'click',
@@ -2484,6 +2518,32 @@ processBtn.addEventListener(
     pdfFile.value = '';
 
 });
+
+document
+    .getElementById('libraryBtn')
+    .addEventListener(
+        'click',
+        ()=>{
+
+        libraryOverlay.style.display =
+            'block';
+
+        renderLibrary();
+
+});
+
+document
+    .getElementById('closeLibrary')
+    .addEventListener(
+        'click',
+        ()=>{
+
+        libraryOverlay.style.display =
+            'none';
+
+});
+
+/* IMPORT MODAL */
 
 importBtn.addEventListener(
     'click',
@@ -2530,33 +2590,7 @@ pdfFile.addEventListener(
 
 });
 
-/* LIBRARY */
-
-document
-    .getElementById('libraryBtn')
-    .addEventListener(
-        'click',
-        ()=>{
-
-        libraryOverlay.style.display =
-            'block';
-
-        renderLibrary();
-
-});
-
-document
-    .getElementById('closeLibrary')
-    .addEventListener(
-        'click',
-        ()=>{
-
-        libraryOverlay.style.display =
-            'none';
-
-});
-
-/* NOTES SWIPE */
+/* SWIPE */
 
 function openNotes(){
 
