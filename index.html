@@ -525,6 +525,13 @@ main{
     opacity:0.7;
 }
 
+/* COVERED CELL FIX */
+
+.note-input.covered{
+
+    pointer-events:none;
+}
+
 /* LIBRARY */
 
 .library-overlay{
@@ -1296,6 +1303,71 @@ function autoResize(textarea){
 
 }
 
+/* COVERED CELLS */
+
+function updateCoveredCells(){
+
+    const inputs =
+        [
+            ...document.querySelectorAll('.note-input')
+        ];
+
+    inputs.forEach(input=>{
+
+        input.classList.remove(
+            'covered'
+        );
+
+    });
+
+    inputs.forEach(input=>{
+
+        const startLine =
+            Number(input.dataset.line);
+
+        const height =
+            input.offsetHeight;
+
+        const coveredLines =
+            Math.floor(
+                (height - 1) / 40
+            );
+
+        if(coveredLines <= 1){
+            return;
+        }
+
+        for(
+            let i=1;
+            i<coveredLines;
+            i++
+        ){
+
+            const covered =
+                document.querySelector(
+                    '.note-input[data-line="' +
+                    (startLine + i) +
+                    '"]'
+                );
+
+            if(
+                covered
+                &&
+                covered !== input
+            ){
+
+                covered.classList.add(
+                    'covered'
+                );
+
+            }
+
+        }
+
+    });
+
+}
+
 /* SAVE NOTES */
 
 async function saveNotes(){
@@ -1401,6 +1473,8 @@ async function closeCurrentInput(){
 
     updateCellAvailability();
 
+    updateCoveredCells();
+
 }
 
 /* NOTEBOOK */
@@ -1498,6 +1572,8 @@ function createNotebook(
 
             autoResize(input);
 
+            updateCoveredCells();
+
         });
 
         /* OPEN */
@@ -1507,6 +1583,16 @@ function createNotebook(
             event=>{
 
             event.stopPropagation();
+
+            if(
+                input.classList.contains(
+                    'covered'
+                )
+            ){
+
+                return;
+
+            }
 
             if(
                 activeInput
@@ -1537,14 +1623,6 @@ function createNotebook(
 
             input.focus();
 
-            const length =
-                input.value.length;
-
-            input.setSelectionRange(
-                length,
-                length
-            );
-
         });
 
         /* INPUT */
@@ -1554,6 +1632,8 @@ function createNotebook(
             ()=>{
 
             autoResize(input);
+
+            updateCoveredCells();
 
         });
 
