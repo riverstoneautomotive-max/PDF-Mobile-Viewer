@@ -61,26 +61,17 @@ body{
     width:100%;
 
     overflow-x:hidden;
-}
-
-html{
 
     background:var(--bg);
-
-    scroll-behavior:smooth;
 }
 
 body{
-
-    background:var(--bg);
 
     color:var(--text);
 
     font-family:'Source Serif 4', serif;
 
     -webkit-font-smoothing:antialiased;
-
-    text-rendering:optimizeLegibility;
 }
 
 /* HEADER */
@@ -112,9 +103,7 @@ header{
 
     align-items:center;
 
-    gap:12px;
-
-    width:100%;
+    gap:10px;
 }
 
 input[type="file"]{
@@ -122,8 +111,6 @@ input[type="file"]{
     color:var(--muted);
 
     font-family:inherit;
-
-    max-width:100%;
 }
 
 button{
@@ -143,13 +130,6 @@ button{
     cursor:pointer;
 
     font-family:inherit;
-
-    transition:all 0.2s ease;
-}
-
-button:hover{
-
-    background:var(--accent-light);
 }
 
 #status{
@@ -187,8 +167,6 @@ button:hover{
         var(--accent-dark),
         var(--accent-light)
     );
-
-    transition:width 0.25s ease;
 }
 
 /* FONT BAR */
@@ -209,8 +187,6 @@ button:hover{
 
     padding:10px 16px 0;
 
-    background:transparent;
-
     pointer-events:none;
 }
 
@@ -221,6 +197,83 @@ button:hover{
     display:none;
 
     pointer-events:auto;
+}
+
+.fab{
+
+    width:38px;
+
+    height:38px;
+
+    border-radius:999px;
+
+    background:#1a1c17;
+
+    border:1px solid var(--border);
+
+    color:var(--text);
+
+    font-size:13px;
+
+    padding:0;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+}
+
+/* PANEL */
+
+.font-panel{
+
+    position:absolute;
+
+    top:50px;
+
+    right:0;
+
+    width:170px;
+
+    background:#1a1c17;
+
+    border:1px solid var(--border);
+
+    border-radius:18px;
+
+    padding:14px;
+
+    display:none;
+}
+
+.font-controls{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+}
+
+.font-btn{
+
+    width:38px;
+
+    height:38px;
+
+    border-radius:12px;
+
+    padding:0;
+
+    background:#2b2e25;
+
+    color:var(--text);
+}
+
+.font-size-display{
+
+    color:var(--muted);
 }
 
 /* MAIN */
@@ -245,43 +298,85 @@ main{
     font-size:1rem;
 
     line-height:1.68;
-
-    letter-spacing:0.01em;
-
-    overflow-wrap:break-word;
-
-    hyphens:auto;
 }
-
-/* HEADINGS */
 
 .smart-heading{
 
     font-size:2rem;
 
-    line-height:1.14;
-
     margin-top:3rem;
 
-    margin-bottom:1.3rem;
+    margin-bottom:1.2rem;
 
     font-weight:700;
 }
 
-/* PARAGRAPHS */
-
 .smart-paragraph{
 
-    margin:0 0 1.55rem;
+    margin:0 0 1.4rem;
 
     text-align:justify;
-
-    text-justify:inter-word;
 }
 
-/* LINKS */
+/* LIBRARY */
 
-.smart-link{
+.library-screen,
+.notes-screen{
+
+    position:fixed;
+
+    inset:0;
+
+    background:var(--bg);
+
+    z-index:3000;
+
+    overflow-y:auto;
+
+    display:none;
+}
+
+.screen-header{
+
+    position:sticky;
+
+    top:0;
+
+    background:rgba(17,19,15,0.97);
+
+    backdrop-filter:blur(14px);
+
+    border-bottom:1px solid var(--border);
+
+    padding:16px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+}
+
+.back-btn,
+.copy-btn{
+
+    background:none;
+
+    color:var(--text);
+
+    font-size:22px;
+
+    padding:0;
+
+    border:none;
+}
+
+.library-list{
+
+    padding:18px;
+}
+
+.library-item{
 
     display:flex;
 
@@ -289,42 +384,86 @@ main{
 
     justify-content:space-between;
 
-    gap:14px;
+    gap:10px;
 
-    margin:1.4rem 0 2rem;
-
-    padding:16px 18px;
-
-    border-radius:18px;
-
-    background:#1b1d18;
+    background:#1a1c17;
 
     border:1px solid var(--border);
 
-    color:var(--accent-light);
+    border-radius:18px;
 
-    text-decoration:none;
+    padding:16px;
+
+    margin-bottom:14px;
+}
+
+.library-name{
+
+    flex:1;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+    white-space:nowrap;
+}
+
+.remove-btn{
+
+    width:30px;
+
+    height:30px;
+
+    border-radius:999px;
+
+    padding:0;
+
+    background:#2b2e25;
+
+    color:var(--text);
+}
+
+/* NOTES */
+
+.notes-content{
+
+    padding:20px;
+}
+
+.note-line{
+
+    margin-bottom:22px;
+}
+
+.note-source{
+
+    color:var(--text);
+
+    margin-bottom:8px;
 
     line-height:1.5;
-
-    transition:all 0.2s ease;
-
-    word-break:break-word;
 }
 
-.smart-link:hover{
+.note-input{
 
-    background:#252822;
+    width:100%;
+
+    min-height:90px;
+
+    border-radius:14px;
+
+    background:#1a1c17;
+
+    border:1px solid var(--border);
+
+    color:var(--text);
+
+    padding:14px;
+
+    font-family:inherit;
+
+    resize:vertical;
 }
-
-.smart-link::after{
-
-    content:"↗";
-
-    opacity:0.7;
-}
-
-/* LOADING */
 
 .loading{
 
@@ -333,139 +472,6 @@ main{
     padding:90px 20px;
 
     color:var(--muted);
-
-    font-size:1.05rem;
-}
-
-/* FONT BUTTON */
-
-.fab{
-
-    width:38px;
-
-    height:38px;
-
-    border-radius:999px;
-
-    background:rgba(26,28,23,0.96);
-
-    border:1px solid var(--border);
-
-    color:var(--text);
-
-    font-size:13px;
-
-    font-weight:700;
-
-    cursor:pointer;
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:center;
-}
-
-/* FONT PANEL */
-
-.font-panel{
-
-    position:absolute;
-
-    top:50px;
-
-    right:0;
-
-    width:170px;
-
-    background:rgba(26,28,23,0.98);
-
-    border:1px solid var(--border);
-
-    border-radius:18px;
-
-    padding:14px;
-
-    z-index:2000;
-
-    display:none;
-
-    box-shadow:0 14px 40px rgba(0,0,0,0.45);
-}
-
-.font-panel-title{
-
-    font-size:12px;
-
-    text-transform:uppercase;
-
-    letter-spacing:2px;
-
-    color:var(--muted);
-
-    margin-bottom:14px;
-
-    font-family:system-ui,sans-serif;
-}
-
-.font-controls{
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:space-between;
-}
-
-.font-btn{
-
-    width:38px;
-
-    height:38px;
-
-    border-radius:12px;
-
-    border:none;
-
-    background:#2b2e25;
-
-    color:var(--text);
-
-    font-size:16px;
-
-    cursor:pointer;
-}
-
-.font-size-display{
-
-    font-size:14px;
-
-    color:var(--muted);
-
-    min-width:42px;
-
-    text-align:center;
-
-    font-family:system-ui,sans-serif;
-}
-
-::selection{
-
-    background:#5b5537;
-
-    color:white;
-}
-
-::-webkit-scrollbar{
-
-    width:10px;
-}
-
-::-webkit-scrollbar-thumb{
-
-    background:#3c4035;
-
-    border-radius:999px;
 }
 
 @media(max-width:700px){
@@ -485,6 +491,10 @@ main{
 <header>
 
     <div class="toolbar">
+
+        <button id="libraryBtn">
+            Library
+        </button>
 
         <input
             type="file"
@@ -513,8 +523,6 @@ main{
 
 </header>
 
-<!-- FONT BUTTON BELOW HEADER -->
-
 <div class="font-bar">
 
     <div
@@ -530,10 +538,6 @@ main{
         <div
             class="font-panel"
             id="fontPanel">
-
-            <div class="font-panel-title">
-                Font Size
-            </div>
 
             <div class="font-controls">
 
@@ -576,6 +580,68 @@ main{
 
 </main>
 
+<!-- LIBRARY -->
+
+<div
+    class="library-screen"
+    id="libraryScreen">
+
+    <div class="screen-header">
+
+        <button
+            class="back-btn"
+            id="closeLibrary">
+            ←
+        </button>
+
+        <div>
+            Library
+        </div>
+
+        <div></div>
+
+    </div>
+
+    <div
+        class="library-list"
+        id="libraryList">
+    </div>
+
+</div>
+
+<!-- NOTES -->
+
+<div
+    class="notes-screen"
+    id="notesScreen">
+
+    <div class="screen-header">
+
+        <button
+            class="back-btn"
+            id="closeNotes">
+            ←
+        </button>
+
+        <div>
+            Notes
+        </div>
+
+        <button
+            class="copy-btn"
+            id="copyNotes">
+            ⧉
+        </button>
+
+    </div>
+
+    <div
+        class="notes-content"
+        id="notesContent">
+    </div>
+
+</div>
+
 <script>
 
 /* PDF.JS */
@@ -593,6 +659,9 @@ const pdfFile =
 
 const processBtn =
     document.getElementById('processBtn');
+
+const libraryBtn =
+    document.getElementById('libraryBtn');
 
 const reader =
     document.getElementById('reader');
@@ -615,9 +684,25 @@ const fontPanel =
 const fontSizeDisplay =
     document.getElementById('fontSizeDisplay');
 
-/* FONT */
+const libraryScreen =
+    document.getElementById('libraryScreen');
+
+const libraryList =
+    document.getElementById('libraryList');
+
+const notesScreen =
+    document.getElementById('notesScreen');
+
+const notesContent =
+    document.getElementById('notesContent');
+
+/* STATE */
 
 let currentFontSize = 1.00;
+
+let currentPdfId = null;
+
+let currentBlocks = [];
 
 /* STORAGE */
 
@@ -625,10 +710,7 @@ const DB_NAME =
     'pdf-reader-db';
 
 const STORE_NAME =
-    'pdf-store';
-
-const LAST_PDF_KEY =
-    'last-pdf';
+    'pdf-library';
 
 /* DATABASE */
 
@@ -652,7 +734,10 @@ function openDatabase(){
             ){
 
                 db.createObjectStore(
-                    STORE_NAME
+                    STORE_NAME,
+                    {
+                        keyPath:'id'
+                    }
                 );
             }
 
@@ -674,83 +759,76 @@ function openDatabase(){
 
 /* SAVE PDF */
 
-async function saveLastPdf(file){
+async function savePdfToLibrary(
+    id,
+    name,
+    file,
+    notes={}
+){
 
     const db =
         await openDatabase();
 
-    const transaction =
+    const tx =
         db.transaction(
             STORE_NAME,
             'readwrite'
         );
 
-    const store =
-        transaction.objectStore(
-            STORE_NAME
-        );
-
-    store.put(
-        file,
-        LAST_PDF_KEY
-    );
+    tx.objectStore(STORE_NAME)
+        .put({
+            id,
+            name,
+            file,
+            notes
+        });
 
 }
 
-/* LOAD PDF */
+/* GET LIBRARY */
 
-async function loadLastPdf(){
+async function getLibrary(){
 
     return new Promise(
-        async (resolve,reject)=>{
+        async resolve=>{
 
         const db =
             await openDatabase();
 
-        const transaction =
+        const tx =
             db.transaction(
                 STORE_NAME,
                 'readonly'
             );
 
-        const store =
-            transaction.objectStore(
-                STORE_NAME
-            );
-
         const request =
-            store.get(
-                LAST_PDF_KEY
-            );
+            tx.objectStore(STORE_NAME)
+            .getAll();
 
         request.onsuccess =
             ()=>resolve(
                 request.result
             );
 
-        request.onerror =
-            ()=>reject(
-                request.error
-            );
-
     });
 
 }
 
-/* STATUS */
+/* DELETE */
 
-function setStatus(text){
+async function deletePdf(id){
 
-    statusText.textContent =
-        text;
-}
+    const db =
+        await openDatabase();
 
-/* PROGRESS */
+    const tx =
+        db.transaction(
+            STORE_NAME,
+            'readwrite'
+        );
 
-function setProgress(percent){
-
-    progressBar.style.width =
-        percent + '%';
+    tx.objectStore(STORE_NAME)
+        .delete(id);
 }
 
 /* FONT */
@@ -770,120 +848,30 @@ function updateFont(){
         currentFontSize.toFixed(2) + 'x';
 }
 
-/* CLEAN TEXT */
+/* STATUS */
+
+function setStatus(text){
+
+    statusText.textContent =
+        text;
+}
+
+/* PROGRESS */
+
+function setProgress(percent){
+
+    progressBar.style.width =
+        percent + '%';
+}
+
+/* CLEAN */
 
 function cleanText(text){
 
     return text
-
         .replace(/\s+/g,' ')
-
         .replace(/-\s+/g,'')
-
         .trim();
-}
-
-/* SPLIT PARAGRAPHS */
-
-function splitLongParagraph(text){
-
-    const sentences =
-        text.match(
-            /[^.!?]+[.!?]+/g
-        ) || [text];
-
-    if(
-        sentences.length < 7
-    ){
-
-        return [text];
-    }
-
-    const chunks = [];
-
-    let current = '';
-
-    sentences.forEach(sentence=>{
-
-        const proposed =
-            current + ' ' + sentence;
-
-        if(
-            proposed.length > 650
-        ){
-
-            chunks.push(
-                current.trim()
-            );
-
-            current =
-                sentence;
-
-        }else{
-
-            current +=
-                ' ' + sentence;
-        }
-
-    });
-
-    if(current.trim()){
-
-        chunks.push(
-            current.trim()
-        );
-    }
-
-    return chunks;
-}
-
-/* URL */
-
-function extractUrl(text){
-
-    const match =
-        text.match(
-            /(https?:\/\/[^\s]+|www\.[^\s]+)/i
-        );
-
-    return match
-        ? match[0]
-        : null;
-}
-
-/* LINK */
-
-function createLink(url){
-
-    let href = url;
-
-    if(
-        !href.startsWith('http')
-    ){
-
-        href =
-            'https://' + href;
-    }
-
-    const link =
-        document.createElement('a');
-
-    link.className =
-        'smart-link';
-
-    link.href =
-        href;
-
-    link.target =
-        '_blank';
-
-    link.rel =
-        'noopener noreferrer';
-
-    link.textContent =
-        url;
-
-    return link;
 }
 
 /* DOMINANT FONT */
@@ -905,23 +893,13 @@ function findDominantFontSize(items){
             (counts[size] || 0) + 1;
     });
 
-    let dominant = 12;
-
-    let highest = 0;
-
-    Object.entries(counts)
-        .forEach(([size,count])=>{
-
-        if(count > highest){
-
-            highest = count;
-
-            dominant = Number(size);
-        }
-
-    });
-
-    return dominant;
+    return Number(
+        Object.keys(counts)
+        .sort(
+            (a,b)=>
+            counts[b]-counts[a]
+        )[0]
+    ) || 12;
 }
 
 /* BOLD */
@@ -929,53 +907,18 @@ function findDominantFontSize(items){
 function isBold(item){
 
     const fontName =
-
         item.fontName
         ? item.fontName.toLowerCase()
         : '';
 
     return (
-
         fontName.includes('bold')
-
         ||
-
         fontName.includes('black')
-
         ||
-
         fontName.includes('heavy')
-
         ||
-
         fontName.includes('semibold')
-
-    );
-}
-
-/* CAPS HEADINGS */
-
-function isAllCapsHeading(text){
-
-    const cleaned =
-
-        text
-            .replace(/[^A-Z\s]/g,'');
-
-    if(
-        cleaned.length < 5
-    ){
-        return false;
-    }
-
-    return (
-
-        text === text.toUpperCase()
-
-        &&
-
-        /[A-Z]/.test(text)
-
     );
 }
 
@@ -1009,68 +952,38 @@ function buildBlocks(
         const y =
             item.transform[5];
 
-        const verticalGap =
-
+        const gap =
             lastY !== null
-
             &&
+            Math.abs(y-lastY);
 
-            Math.abs(y - lastY);
-
-        const isNewLine =
-            verticalGap > 5;
-
-        const allCapsHeading =
-
-            isNewLine
-
-            &&
-
-            isAllCapsHeading(text);
-
-        const isHeading =
-
+        const heading =
             fontSize > dominantSize
-
             ||
-
-            isBold(item)
-
-            ||
-
-            allCapsHeading;
+            isBold(item);
 
         const type =
-            isHeading
+            heading
             ? 'heading'
             : 'paragraph';
 
         const shouldBreak =
-
             !currentBlock
-
             ||
-
-            (
-                type !== lastType
-            )
-
+            type !== lastType
             ||
-
-            (
-                verticalGap > 42
-            );
+            gap > 42;
 
         if(shouldBreak){
 
             currentBlock = {
-
                 type,
-
                 text:''
             };
 
-            blocks.push(currentBlock);
+            blocks.push(
+                currentBlock
+            );
         }
 
         currentBlock.text +=
@@ -1093,6 +1006,8 @@ function buildBlocks(
 
 function renderBlocks(blocks){
 
+    currentBlocks = blocks;
+
     reader.innerHTML = '';
 
     const wrapper =
@@ -1111,19 +1026,6 @@ function renderBlocks(blocks){
         }
 
         if(
-            extractUrl(text)
-        ){
-
-            wrapper.appendChild(
-                createLink(
-                    extractUrl(text)
-                )
-            );
-
-            return;
-        }
-
-        if(
             block.type === 'heading'
         ){
 
@@ -1137,51 +1039,41 @@ function renderBlocks(blocks){
                 text;
 
             wrapper.appendChild(h);
-        }
 
-        else{
+        }else{
 
-            const pieces =
-                splitLongParagraph(text);
+            const p =
+                document.createElement('p');
 
-            pieces.forEach(piece=>{
+            p.className =
+                'smart-paragraph';
 
-                const p =
-                    document.createElement('p');
+            p.textContent =
+                text;
 
-                    p.className =
-                        'smart-paragraph';
-
-                    p.textContent =
-                        piece;
-
-                    wrapper.appendChild(p);
-
-            });
+            wrapper.appendChild(p);
 
         }
 
     });
 
     reader.appendChild(wrapper);
+
+    updateFont();
 }
 
-/* PROCESS PDF */
+/* PROCESS */
 
-async function processPdf(file){
+async function processPdf(
+    file,
+    existingId=null
+){
 
     try{
 
         if(!file){
-
-            alert(
-                'Please upload a PDF first.'
-            );
-
             return;
         }
-
-        await saveLastPdf(file);
 
         reader.innerHTML = `
             <div class="loading">
@@ -1189,14 +1081,11 @@ async function processPdf(file){
             </div>
         `;
 
-        fontControls.style.display =
-            'none';
-
-        setProgress(0);
-
         setStatus(
             'Loading PDF...'
         );
+
+        setProgress(0);
 
         const buffer =
             await file.arrayBuffer();
@@ -1212,45 +1101,27 @@ async function processPdf(file){
         const allItems = [];
 
         for(
-
-            let pageNumber = 1;
-
-            pageNumber <= pdf.numPages;
-
-            pageNumber++
-
+            let page=1;
+            page<=pdf.numPages;
+            page++
         ){
 
-            setStatus(
-                `Reading page ${pageNumber} of ${pdf.numPages}`
-            );
-
-            const page =
-                await pdf.getPage(
-                    pageNumber
-                );
+            const pdfPage =
+                await pdf.getPage(page);
 
             const content =
-                await page.getTextContent();
+                await pdfPage.getTextContent();
 
             allItems.push(
                 ...content.items
             );
 
             setProgress(
-                (
-                    pageNumber /
-                    pdf.numPages
-                ) * 100
+                (page/pdf.numPages)*100
             );
-
         }
 
-        setStatus(
-            'Analyzing document...'
-        );
-
-        const dominantSize =
+        const dominant =
             findDominantFontSize(
                 allItems
             );
@@ -1258,89 +1129,320 @@ async function processPdf(file){
         const blocks =
             buildBlocks(
                 allItems,
-                dominantSize
+                dominant
             );
-
-        setStatus(
-            'Rendering document...'
-        );
 
         renderBlocks(blocks);
 
-        updateFont();
+        fontControls.style.display =
+            'block';
 
-        setProgress(100);
+        currentPdfId =
+            existingId
+            ||
+            Date.now().toString();
+
+        const library =
+            await getLibrary();
+
+        const existing =
+            library.find(
+                item=>
+                item.id === currentPdfId
+            );
+
+        await savePdfToLibrary(
+            currentPdfId,
+            file.name,
+            file,
+            existing?.notes || {}
+        );
 
         setStatus(
             'Complete'
         );
 
-        fontControls.style.display =
-            'block';
-
     }catch(error){
 
         console.error(error);
 
-        reader.innerHTML = `
-            <div class="loading">
-                Error processing PDF.
-            </div>
-        `;
-
         setStatus(
             'Error'
         );
-
-        setProgress(0);
     }
 
 }
 
-/* BUTTON */
+/* LIBRARY RENDER */
+
+async function renderLibrary(){
+
+    const items =
+        await getLibrary();
+
+    libraryList.innerHTML = '';
+
+    if(!items.length){
+
+        libraryList.innerHTML = `
+            <div class="loading">
+                No PDFs saved yet.
+            </div>
+        `;
+
+        return;
+    }
+
+    items.reverse().forEach(item=>{
+
+        const row =
+            document.createElement('div');
+
+        row.className =
+            'library-item';
+
+        const name =
+            document.createElement('div');
+
+        name.className =
+            'library-name';
+
+        name.textContent =
+            item.name;
+
+        name.onclick =
+            async ()=>{
+
+            libraryScreen.style.display =
+                'none';
+
+            await processPdf(
+                item.file,
+                item.id
+            );
+
+        };
+
+        const remove =
+            document.createElement('button');
+
+        remove.className =
+            'remove-btn';
+
+        remove.textContent =
+            '×';
+
+        remove.onclick =
+            async event=>{
+
+            event.stopPropagation();
+
+            await deletePdf(
+                item.id
+            );
+
+            renderLibrary();
+
+        };
+
+        row.appendChild(name);
+
+        row.appendChild(remove);
+
+        libraryList.appendChild(row);
+
+    });
+
+}
+
+/* NOTES */
+
+async function openNotes(){
+
+    notesScreen.style.display =
+        'block';
+
+    notesContent.innerHTML = '';
+
+    const library =
+        await getLibrary();
+
+    const current =
+        library.find(
+            item=>
+            item.id === currentPdfId
+        );
+
+    const notes =
+        current?.notes || {};
+
+    currentBlocks.forEach(
+        (block,index)=>{
+
+        if(
+            block.type !==
+            'paragraph'
+        ){
+            return;
+        }
+
+        const wrapper =
+            document.createElement('div');
+
+        wrapper.className =
+            'note-line';
+
+        const source =
+            document.createElement('div');
+
+        source.className =
+            'note-source';
+
+        source.textContent =
+            block.text;
+
+        const textarea =
+            document.createElement('textarea');
+
+        textarea.className =
+            'note-input';
+
+        textarea.placeholder =
+            'Write notes...';
+
+        textarea.value =
+            notes[index] || '';
+
+        textarea.addEventListener(
+            'input',
+            async ()=>{
+
+            notes[index] =
+                textarea.value;
+
+            await savePdfToLibrary(
+                current.id,
+                current.name,
+                current.file,
+                notes
+            );
+
+        });
+
+        wrapper.appendChild(source);
+
+        wrapper.appendChild(textarea);
+
+        notesContent.appendChild(wrapper);
+
+    });
+
+}
+
+/* COPY NOTES */
+
+document
+    .getElementById('copyNotes')
+    .addEventListener(
+        'click',
+        ()=>{
+
+        const notes =
+            [
+                ...document.querySelectorAll(
+                    '.note-input'
+                )
+            ]
+            .map(
+                note=>note.value
+            )
+            .join('\n\n');
+
+        navigator.clipboard.writeText(
+            notes
+        );
+
+});
+
+/* SWIPE */
+
+let touchStartX = 0;
+
+document.addEventListener(
+    'touchstart',
+    event=>{
+
+    touchStartX =
+        event.changedTouches[0]
+        .screenX;
+
+});
+
+document.addEventListener(
+    'touchend',
+    event=>{
+
+    const endX =
+        event.changedTouches[0]
+        .screenX;
+
+    if(
+        endX - touchStartX > 120
+        &&
+        currentPdfId
+    ){
+
+        openNotes();
+    }
+
+});
+
+/* BUTTONS */
 
 processBtn.addEventListener(
     'click',
     ()=>{
 
-    const file =
-        pdfFile.files[0];
-
-    processPdf(file);
+    processPdf(
+        pdfFile.files[0]
+    );
 
 });
 
-/* AUTO LOAD */
-
-window.addEventListener(
-    'load',
+libraryBtn.addEventListener(
+    'click',
     async ()=>{
 
-    try{
+    libraryScreen.style.display =
+        'block';
 
-        const savedPdf =
-            await loadLastPdf();
-
-        if(savedPdf){
-
-            setStatus(
-                'Reloading last PDF...'
-            );
-
-            await processPdf(
-                savedPdf
-            );
-
-        }
-
-    }catch(error){
-
-        console.error(error);
-    }
+    renderLibrary();
 
 });
 
-/* TOGGLE PANEL */
+document
+    .getElementById('closeLibrary')
+    .addEventListener(
+        'click',
+        ()=>{
+
+        libraryScreen.style.display =
+            'none';
+
+});
+
+document
+    .getElementById('closeNotes')
+    .addEventListener(
+        'click',
+        ()=>{
+
+        notesScreen.style.display =
+            'none';
+
+});
+
+/* FONT */
 
 fontToggle.addEventListener(
     'click',
@@ -1352,12 +1454,9 @@ fontToggle.addEventListener(
         'block'
 
         ? 'none'
-
         : 'block';
 
 });
-
-/* FONT UP */
 
 document
     .getElementById('fontUp')
@@ -1370,8 +1469,6 @@ document
         updateFont();
 
 });
-
-/* FONT DOWN */
 
 document
     .getElementById('fontDown')
@@ -1389,30 +1486,25 @@ document
 
 });
 
-/* CLOSE PANEL */
+/* AUTO LOAD */
 
-document.addEventListener(
-    'click',
-    event=>{
+window.addEventListener(
+    'load',
+    async ()=>{
 
-    const insidePanel =
-        fontPanel.contains(
-            event.target
+    const items =
+        await getLibrary();
+
+    if(items.length){
+
+        const latest =
+            items[items.length - 1];
+
+        processPdf(
+            latest.file,
+            latest.id
         );
 
-    const clickedToggle =
-        fontToggle.contains(
-            event.target
-        );
-
-    if(
-        !insidePanel
-        &&
-        !clickedToggle
-    ){
-
-        fontPanel.style.display =
-            'none';
     }
 
 });
