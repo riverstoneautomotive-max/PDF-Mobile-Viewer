@@ -80,8 +80,6 @@ body{
     touch-action:pan-y;
 }
 
-/* VIEWPORT */
-
 .viewport{
 
     position:fixed;
@@ -116,8 +114,6 @@ body{
 
     overscroll-behavior:contain;
 }
-
-/* HEADER */
 
 header{
 
@@ -185,8 +181,6 @@ button:hover{
     font-size:14px;
 }
 
-/* PROGRESS */
-
 .progress-wrapper{
 
     width:100%;
@@ -216,8 +210,6 @@ button:hover{
 
     transition:width 0.25s ease;
 }
-
-/* FONT */
 
 .font-row{
 
@@ -303,8 +295,6 @@ button:hover{
     padding:0;
 }
 
-/* PDF */
-
 main{
 
     width:100%;
@@ -354,8 +344,6 @@ main{
     color:var(--muted);
 }
 
-/* NOTES */
-
 .notes-panel{
 
     background:var(--bg);
@@ -389,8 +377,6 @@ main{
     font-size:18px;
 }
 
-/* NOTEBOOK */
-
 .notes-wrapper{
 
     width:100%;
@@ -408,8 +394,6 @@ main{
 
     width:100%;
 }
-
-/* RULING LAYER */
 
 .ruling-layer{
 
@@ -435,8 +419,6 @@ main{
     background:rgba(157,153,135,0.18);
 }
 
-/* CELLS */
-
 .cells-layer{
 
     position:absolute;
@@ -456,8 +438,6 @@ main{
 
     height:40px;
 }
-
-/* INPUT */
 
 .note-input{
 
@@ -502,21 +482,15 @@ main{
     z-index:5;
 }
 
-/* RULING REMAINS VISIBLE */
-
 .note-input.editing{
 
     background:rgba(17,19,15,0.05);
 }
 
-/* CLOSED */
-
 .note-input.closed{
 
     cursor:text;
 }
-
-/* DISABLED */
 
 .note-input.disabled{
 
@@ -524,8 +498,6 @@ main{
 
     opacity:0.7;
 }
-
-/* LIBRARY */
 
 .library-overlay{
 
@@ -651,8 +623,6 @@ main{
         class="panels"
         id="panels">
 
-        <!-- PDF -->
-
         <div
             class="panel"
             id="readerPanel">
@@ -748,8 +718,6 @@ main{
 
         </div>
 
-        <!-- NOTES -->
-
         <div
             class="panel notes-panel"
             id="notesPanel">
@@ -774,8 +742,6 @@ main{
     </div>
 
 </div>
-
-<!-- LIBRARY -->
 
 <div
     class="library-overlay"
@@ -806,15 +772,11 @@ main{
 
 <script>
 
-/* PDF */
-
 const pdfjsLib =
     window['pdfjs-dist/build/pdf'];
 
 pdfjsLib.GlobalWorkerOptions.workerSrc =
 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-/* ELEMENTS */
 
 const pdfFile =
     document.getElementById('pdfFile');
@@ -861,8 +823,6 @@ const fontToggle =
 const fontSizeDisplay =
     document.getElementById('fontSizeDisplay');
 
-/* STORAGE */
-
 const DB_NAME =
     'ai-pdf-reader';
 
@@ -872,8 +832,6 @@ const STORE_NAME =
 const LAST_KEY =
     'last-opened-pdf';
 
-/* STATE */
-
 let currentPdfId = null;
 
 let currentFontSize = 1.00;
@@ -881,8 +839,6 @@ let currentFontSize = 1.00;
 let showingNotes = false;
 
 let activeInput = null;
-
-/* DATABASE */
 
 function openDatabase(){
 
@@ -928,8 +884,6 @@ function openDatabase(){
 
 }
 
-/* SAVE */
-
 async function saveRecord(record){
 
     const db =
@@ -952,8 +906,6 @@ async function saveRecord(record){
     });
 
 }
-
-/* GET */
 
 async function getAllRecords(){
 
@@ -981,8 +933,6 @@ async function getAllRecords(){
 
 }
 
-/* REMOVE */
-
 async function removeRecord(id){
 
     const db =
@@ -1006,23 +956,17 @@ async function removeRecord(id){
 
 }
 
-/* STATUS */
-
 function setStatus(text){
 
     statusText.textContent =
         text;
 }
 
-/* PROGRESS */
-
 function setProgress(value){
 
     progressBar.style.width =
         value + '%';
 }
-
-/* FONT */
 
 function updateFont(){
 
@@ -1049,8 +993,6 @@ function updateFont(){
 
 }
 
-/* CLEAN */
-
 function cleanText(text){
 
     return text
@@ -1062,8 +1004,6 @@ function cleanText(text){
         .trim();
 
 }
-
-/* DOMINANT FONT */
 
 function findDominantFontSize(items){
 
@@ -1106,8 +1046,6 @@ function findDominantFontSize(items){
 
 }
 
-/* BOLD */
-
 function isBold(item){
 
     const font =
@@ -1134,8 +1072,6 @@ function isBold(item){
     );
 
 }
-
-/* BUILD BLOCKS */
 
 function buildBlocks(
     items,
@@ -1223,8 +1159,6 @@ function buildBlocks(
 
 }
 
-/* RENDER */
-
 function renderBlocks(blocks){
 
     reader.innerHTML = '';
@@ -1284,8 +1218,6 @@ function renderBlocks(blocks){
 
 }
 
-/* AUTO RESIZE */
-
 function autoResize(textarea){
 
     textarea.style.height =
@@ -1295,8 +1227,6 @@ function autoResize(textarea){
         textarea.scrollHeight + 'px';
 
 }
-
-/* SAVE NOTES */
 
 async function saveNotes(){
 
@@ -1342,8 +1272,6 @@ async function saveNotes(){
 
 }
 
-/* ENABLE / DISABLE */
-
 function updateCellAvailability(){
 
     document
@@ -1371,8 +1299,6 @@ function updateCellAvailability(){
     });
 
 }
-
-/* CLOSE INPUT */
 
 async function closeCurrentInput(){
 
@@ -1402,8 +1328,6 @@ async function closeCurrentInput(){
     updateCellAvailability();
 
 }
-
-/* NOTEBOOK */
 
 function createNotebook(
     totalHeight,
@@ -1438,8 +1362,6 @@ function createNotebook(
             totalHeight / 40
         );
 
-    /* RULING */
-
     for(
         let i=0;
         i<lineCount;
@@ -1458,8 +1380,6 @@ function createNotebook(
         rulingLayer.appendChild(line);
 
     }
-
-    /* CELLS */
 
     for(
         let i=0;
@@ -1485,6 +1405,9 @@ function createNotebook(
         input.dataset.line =
             i;
 
+        input.dataset.baseHeight =
+            '40';
+
         input.readOnly =
             true;
 
@@ -1498,9 +1421,9 @@ function createNotebook(
 
             autoResize(input);
 
-        });
+            updateCoveredRows();
 
-        /* FIXED CURSOR BEHAVIOR */
+        });
 
         input.addEventListener(
             'pointerdown',
@@ -1509,13 +1432,20 @@ function createNotebook(
             event.stopPropagation();
 
             if(
+                input.dataset.covered ===
+                'true'
+            ){
+
+                return;
+            }
+
+            if(
                 activeInput
                 &&
                 activeInput !== input
             ){
 
                 return;
-
             }
 
             if(input.readOnly){
@@ -1539,7 +1469,7 @@ function createNotebook(
 
             }
 
-        });
+        );
 
         input.addEventListener(
             'focus',
@@ -1549,13 +1479,13 @@ function createNotebook(
 
         });
 
-        /* INPUT */
-
         input.addEventListener(
             'input',
             ()=>{
 
             autoResize(input);
+
+            updateCoveredRows();
 
         });
 
@@ -1579,9 +1509,77 @@ function createNotebook(
 
     updateFont();
 
-}
+    function updateCoveredRows(){
 
-/* PROCESS */
+        const allInputs =
+            Array.from(
+                document.querySelectorAll(
+                    '.note-input'
+                )
+            );
+
+        allInputs.forEach(input=>{
+
+            input.dataset.covered =
+                'false';
+
+            input.style.pointerEvents =
+                'auto';
+
+        });
+
+        allInputs.forEach(input=>{
+
+            const height =
+                input.offsetHeight;
+
+            const rowsCovered =
+                Math.ceil(
+                    height / 40
+                );
+
+            const start =
+                Number(
+                    input.dataset.line
+                );
+
+            if(rowsCovered <= 1){
+                return;
+            }
+
+            for(
+                let rowIndex = start + 1;
+                rowIndex < start + rowsCovered;
+                rowIndex++
+            ){
+
+                const coveredInput =
+                    allInputs.find(
+                        item=>
+                        Number(
+                            item.dataset.line
+                        ) === rowIndex
+                    );
+
+                if(
+                    coveredInput
+                ){
+
+                    coveredInput.dataset.covered =
+                        'true';
+
+                    coveredInput.style.pointerEvents =
+                        'none';
+
+                }
+
+            }
+
+        });
+
+    }
+
+}
 
 async function processRecord(record){
 
@@ -1699,8 +1697,6 @@ async function processRecord(record){
 
 }
 
-/* NEW FILE */
-
 async function processNewFile(file){
 
     if(!file){
@@ -1734,8 +1730,6 @@ async function processNewFile(file){
     await processRecord(record);
 
 }
-
-/* LIBRARY */
 
 async function renderLibrary(){
 
@@ -1823,8 +1817,6 @@ async function renderLibrary(){
 
 }
 
-/* COPY */
-
 document
     .getElementById('copyNotes')
     .addEventListener(
@@ -1854,8 +1846,6 @@ document
         );
 
 });
-
-/* BUTTONS */
 
 processBtn.addEventListener(
     'click',
@@ -1890,8 +1880,6 @@ document
             'none';
 
 });
-
-/* SWIPE */
 
 function openNotes(){
 
@@ -1977,8 +1965,6 @@ document.addEventListener(
 
 });
 
-/* CLICK OUTSIDE */
-
 document.addEventListener(
     'click',
     async event=>{
@@ -1995,8 +1981,6 @@ document.addEventListener(
     }
 
 });
-
-/* FONT */
 
 fontToggle.addEventListener(
     'click',
@@ -2039,8 +2023,6 @@ document
 
 });
 
-/* AUTO LOAD */
-
 window.addEventListener(
     'load',
     async ()=>{
@@ -2081,8 +2063,6 @@ window.addEventListener(
 
 });
 
-/* CLOSE FONT PANEL */
-
 document.addEventListener(
     'click',
     event=>{
@@ -2109,8 +2089,6 @@ document.addEventListener(
     }
 
 });
-
-/* SERVICE WORKER */
 
 if(
     'serviceWorker'
