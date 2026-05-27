@@ -1500,10 +1500,10 @@ function createNotebook(
 
         });
 
-        /* OPEN */
+        /* FIXED CURSOR BEHAVIOR */
 
         input.addEventListener(
-            'click',
+            'pointerdown',
             event=>{
 
             event.stopPropagation();
@@ -1518,32 +1518,34 @@ function createNotebook(
 
             }
 
-            input.readOnly = false;
+            if(input.readOnly){
 
-            input.classList.remove(
-                'closed'
-            );
+                input.readOnly = false;
 
-            input.classList.add(
-                'editing'
-            );
+                input.classList.remove(
+                    'closed'
+                );
 
-            input.style.zIndex =
-                '999';
+                input.classList.add(
+                    'editing'
+                );
+
+                input.style.zIndex =
+                    '999';
+
+                activeInput = input;
+
+                updateCellAvailability();
+
+            }
+
+        });
+
+        input.addEventListener(
+            'focus',
+            ()=>{
 
             activeInput = input;
-
-            updateCellAvailability();
-
-            input.focus();
-
-            const length =
-                input.value.length;
-
-            input.setSelectionRange(
-                length,
-                length
-            );
 
         });
 
