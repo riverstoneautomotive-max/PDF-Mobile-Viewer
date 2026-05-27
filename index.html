@@ -1400,60 +1400,99 @@ function extractLinks(text){
     const links = [];
 
     const regex =
-        /(https?:\/\/|www\.)[\s\S]+?/gi;
+        /(https?:\/\/|https:|www\.)/gi;
 
     let match;
 
     while(
         (
-            match =
-            regex.exec(text)
+            match = regex.exec(text)
         ) !== null
     ){
 
-        let value =
-            text.slice(match.index);
+        let i =
+            match.index;
 
-        value =
-            normalizeBrokenUrl(value);
+        let url = '';
 
-        let finalUrl = '';
+        let visibleChars = 0;
 
-        for(
-            let i = 0;
-            i < value.length;
-            i++
-        ){
+        while(i < text.length){
 
             const char =
-                value[i];
+                text[i];
 
-            if(
+            const isWhitespace =
                 char === ' '
                 ||
-                char === ')'
+                char === '\n'
                 ||
-                char === ']'
+                char === '\t';
+
+            /* FIRST 8 VISIBLE URL CHARS:
+               ignore whitespace entirely */
+
+            if(
+                visibleChars < 8
+                &&
+                isWhitespace
+            ){
+
+                i++;
+
+                continue;
+
+            }
+
+            /* AFTER 8 CHARS:
+               whitespace ENDS url */
+
+            if(
+                visibleChars >= 8
+                &&
+                isWhitespace
             ){
 
                 break;
+
             }
 
-            finalUrl += char;
+            /* HARD TERMINATORS */
+
+            if(
+                char === ')'
+                ||
+                char === ']'
+                ||
+                char === '"'
+                ||
+                char === "'"
+                ||
+                char === '<'
+                ||
+                char === '>'
+            ){
+
+                break;
+
+            }
+
+            url += char;
+
+            visibleChars++;
+
+            i++;
 
         }
 
-        if(
-            finalUrl.length >= 7
-        ){
+        if(url.length >= 8){
 
             links.push({
 
                 start:
                     match.index,
 
-                raw:
-                    finalUrl
+                raw:url
 
             });
 
