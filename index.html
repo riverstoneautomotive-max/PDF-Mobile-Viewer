@@ -95,7 +95,7 @@ header{
 
     width:100%;
 
-    padding:16px 16px 60px;
+    padding:16px;
 
     background:rgba(17,19,15,0.96);
 
@@ -115,8 +115,6 @@ header{
     gap:12px;
 
     width:100%;
-
-    position:relative;
 }
 
 input[type="file"]{
@@ -193,6 +191,38 @@ button:hover{
     transition:width 0.25s ease;
 }
 
+/* FONT BAR */
+
+.font-bar{
+
+    position:sticky;
+
+    top:86px;
+
+    z-index:450;
+
+    width:100%;
+
+    display:flex;
+
+    justify-content:flex-end;
+
+    padding:10px 16px 0;
+
+    background:transparent;
+
+    pointer-events:none;
+}
+
+.floating{
+
+    position:relative;
+
+    display:none;
+
+    pointer-events:auto;
+}
+
 /* MAIN */
 
 main{
@@ -203,7 +233,7 @@ main{
 
     margin:0 auto;
 
-    padding:24px 22px 120px;
+    padding:12px 22px 120px;
 }
 
 /* DOCUMENT */
@@ -307,20 +337,7 @@ main{
     font-size:1.05rem;
 }
 
-/* FONT CONTROLS */
-
-.floating{
-
-    position:absolute;
-
-    top:calc(100% + 12px);
-
-    right:0;
-
-    display:none;
-
-    z-index:1000;
-}
+/* FONT BUTTON */
 
 .fab{
 
@@ -349,11 +366,13 @@ main{
     justify-content:center;
 }
 
+/* FONT PANEL */
+
 .font-panel{
 
     position:absolute;
 
-    top:54px;
+    top:50px;
 
     right:0;
 
@@ -481,50 +500,6 @@ main{
             Ready
         </span>
 
-        <div
-            class="floating"
-            id="fontControls">
-
-            <button
-                class="fab"
-                id="fontToggle">
-                A+
-            </button>
-
-            <div
-                class="font-panel"
-                id="fontPanel">
-
-                <div class="font-panel-title">
-                    Font Size
-                </div>
-
-                <div class="font-controls">
-
-                    <button
-                        class="font-btn"
-                        id="fontDown">
-                        −
-                    </button>
-
-                    <div
-                        class="font-size-display"
-                        id="fontSizeDisplay">
-                        1.00x
-                    </div>
-
-                    <button
-                        class="font-btn"
-                        id="fontUp">
-                        +
-                    </button>
-
-                </div>
-
-            </div>
-
-        </div>
-
     </div>
 
     <div class="progress-wrapper">
@@ -537,6 +512,56 @@ main{
     </div>
 
 </header>
+
+<!-- FONT BUTTON BELOW HEADER -->
+
+<div class="font-bar">
+
+    <div
+        class="floating"
+        id="fontControls">
+
+        <button
+            class="fab"
+            id="fontToggle">
+            A+
+        </button>
+
+        <div
+            class="font-panel"
+            id="fontPanel">
+
+            <div class="font-panel-title">
+                Font Size
+            </div>
+
+            <div class="font-controls">
+
+                <button
+                    class="font-btn"
+                    id="fontDown">
+                    −
+                </button>
+
+                <div
+                    class="font-size-display"
+                    id="fontSizeDisplay">
+                    1.00x
+                </div>
+
+                <button
+                    class="font-btn"
+                    id="fontUp">
+                    +
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
 
 <main>
 
@@ -1124,13 +1149,13 @@ function renderBlocks(blocks){
                 const p =
                     document.createElement('p');
 
-                p.className =
-                    'smart-paragraph';
+                    p.className =
+                        'smart-paragraph';
 
-                p.textContent =
-                    piece;
+                    p.textContent =
+                        piece;
 
-                wrapper.appendChild(p);
+                    wrapper.appendChild(p);
 
             });
 
