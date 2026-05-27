@@ -246,7 +246,7 @@ main,
 
 .note-input{
     width:100%;
-    min-height:40px;
+    height:40px;
     padding:0;
     margin:0;
     border:none;
@@ -259,7 +259,7 @@ main,
     font-size:1rem;
     line-height:40px;
     white-space:pre-wrap;
-    overflow:hidden;
+    overflow:visible;
     display:block;
     position:relative;
     z-index:2;
@@ -268,18 +268,6 @@ main,
 
 .note-input.closed{
     cursor:text;
-}
-
-.note-input.editing{
-    z-index:100;
-}
-
-.note-row{
-    z-index:1;
-}
-
-.note-row:focus-within{
-    z-index:200;
 }
 
 .note-input.disabled{
@@ -594,12 +582,10 @@ function cleanText(text){
 
 function autoResize(textarea){
 
-    /* EXPAND THE ACTIVE CELL
-       WITHOUT MOVING OTHER ROWS */
+    /* FIXED NOTEBOOK CELLS
+       DO NOT PUSH OTHER ROWS */
 
-    textarea.style.height = 'auto';
-
-    textarea.style.height = textarea.scrollHeight + 'px';
+    textarea.style.height = '40px';
 
 }
 
@@ -706,12 +692,10 @@ function createNotebook(totalHeight,savedNotes={}){
 
         input.addEventListener('input',()=>{
 
-            autoResize(input);
-
-            /* ACTIVE CELL OVERLAPS
-               LOWER NOTE ROWS */
-
-            input.style.zIndex = '100';
+            /* KEEP CELL FIXED HEIGHT
+               SO WRITING OVERLAPS
+               LOWER LINES INSTEAD OF
+               PUSHING THEM DOWN */
 
         });
 
