@@ -135,7 +135,7 @@ header{
 
     top:0;
 
-    z-index:200;
+    z-index:1000;
 }
 
 .header-btn{
@@ -229,9 +229,9 @@ button:hover{
 
     position:sticky;
 
-    top:96px;
+    top:92px;
 
-    z-index:180;
+    z-index:999;
 
     display:flex;
 
@@ -370,20 +370,25 @@ main{
     color:var(--muted);
 }
 
-/* FORMATTING */
+/* INLINE FORMATTING */
 
-.formatted-italic{
+.inline-italic{
 
     font-style:italic;
 }
 
-.smart-link{
+.inline-link{
 
     color:var(--accent-light);
 
     text-decoration:underline;
 
     word-break:break-word;
+}
+
+.inline-link:hover{
+
+    opacity:0.85;
 }
 
 /* NOTES */
@@ -399,7 +404,7 @@ main{
 
     top:0;
 
-    z-index:200;
+    z-index:1000;
 
     padding:16px;
 
@@ -1225,11 +1230,8 @@ function updateFont(){
 function cleanText(text){
 
     return text
-
         .replace(/\s+/g,' ')
-
         .replace(/-\s+/g,'')
-
         .trim();
 
 }
@@ -1327,76 +1329,58 @@ function isItalic(item){
 
 }
 
-/* LINKS */
+/* SMART LINKS */
 
-function formatLinks(text){
+function createSmartHTML(text){
 
-    return text.replace(
+    if(!text){
+        return '';
+    }
 
-        /((?:https?:\/\/|www\.)[^\s\)\]]{7,})/gi,
+    let html = text;
 
-        match=>{
+    const urlRegex =
+        /(?:https?:\/\/|www\.)[\s\S]{7,}??(?=[\s\)\]]|$)/gi;
 
-            let href =
-                match;
+    html =
+        html.replace(
+            urlRegex,
+            match=>{
 
-            if(
-                !href.startsWith('http')
-            ){
+            let clean =
+                match.trim();
 
-                href =
-                    'https://' + href;
+            clean =
+                clean.replace(
+                    /[.,;!?]+$/,
+                    ''
+                );
 
-            }
+            const href =
+                clean.startsWith('http')
+                ? clean
+                : 'https://' + clean;
 
             return `
                 <a
                     href="${href}"
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="smart-link"
+                    class="inline-link"
                 >
-                    ${match}
+                    ${clean}
                 </a>
             `;
 
-        }
+        });
 
-    );
-
-}
-
-/* INLINE FORMATTING */
-
-function applyInlineFormatting(text){
-
-    let formatted =
-        text;
-
-    formatted =
-        formatted.replace(
-
+    html =
+        html.replace(
             /\*([^*\n]+)\*/g,
-
-            (
-                match,
-                content
-            )=>{
-
-                return `
-                    <span class="formatted-italic">
-                        ${content}
-                    </span>
-                `;
-
-            }
-
+            '<span class="inline-italic">$1</span>'
         );
 
-    formatted =
-        formatLinks(formatted);
-
-    return formatted;
+    return html;
 
 }
 
@@ -1445,6 +1429,9 @@ function buildBlocks(
             ? 'heading'
             : 'paragraph';
 
+        const italic =
+            isItalic(item);
+
         const shouldBreak =
 
             !current
@@ -1463,9 +1450,7 @@ function buildBlocks(
 
                 type,
 
-                text:'',
-
-                italic:false
+                parts:[]
 
             };
 
@@ -1473,20 +1458,13 @@ function buildBlocks(
 
         }
 
-        current.text +=
-            (
-                current.text
-                ? ' '
-                : ''
-            ) + text;
+        current.parts.push({
 
-        if(
-            isItalic(item)
-        ){
+            text,
 
-            current.italic = true;
+            italic
 
-        }
+        });
 
         lastY = y;
 
@@ -1512,17 +1490,38 @@ function renderBlocks(blocks){
 
     blocks.forEach(block=>{
 
-        const text =
-            block.text.trim();
-
-        if(!text){
+        if(
+            !block.parts
+            ||
+            !block.parts.length
+        ){
             return;
         }
 
-        const formatted =
-            applyInlineFormatting(
-                text
-            );
+        let html = '';
+
+        block.parts.forEach(part=>{
+
+            let text =
+                createSmartHTML(
+                    part.text
+                );
+
+            if(part.italic){
+
+                text =
+                    `<span class="inline-italic">${text}</span>`;
+
+            }
+
+            html +=
+                (
+                    html
+                    ? ' '
+                    : ''
+                ) + text;
+
+        });
 
         if(
             block.type === 'heading'
@@ -1534,18 +1533,8 @@ function renderBlocks(blocks){
             h.className =
                 'smart-heading';
 
-            if(
-                block.italic
-            ){
-
-                h.classList.add(
-                    'formatted-italic'
-                );
-
-            }
-
             h.innerHTML =
-                formatted;
+                html;
 
             wrapper.appendChild(h);
 
@@ -1559,18 +1548,8 @@ function renderBlocks(blocks){
             p.className =
                 'smart-paragraph';
 
-            if(
-                block.italic
-            ){
-
-                p.classList.add(
-                    'formatted-italic'
-                );
-
-            }
-
             p.innerHTML =
-                formatted;
+                html;
 
             wrapper.appendChild(p);
 
