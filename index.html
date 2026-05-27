@@ -439,20 +439,6 @@ main{
     height:40px;
 }
 
-/*
-IMPORTANT FIX:
-
-The textarea itself is now the FULL hitbox.
-When it grows to 3 lines, the clickable area
-physically overlaps the rows beneath it.
-
-Higher cells therefore naturally receive clicks first.
-
-No fake blocking logic.
-No pointer-events hacks.
-No cursor locking.
-*/
-
 .note-input{
 
     position:absolute;
@@ -493,9 +479,7 @@ No cursor locking.
 
     caret-color:var(--accent-light);
 
-    z-index:5;
-
-    pointer-events:auto;
+    z-index:10;
 }
 
 .note-input.editing{
@@ -508,11 +492,9 @@ No cursor locking.
     cursor:text;
 }
 
-.note-input.disabled{
+.note-input.covered{
 
     pointer-events:none;
-
-    opacity:0.7;
 }
 
 .library-overlay{
@@ -759,480 +741,12 @@ No cursor locking.
 
 </div>
 
-<div
-    class="library-overlay"
-    id="libraryOverlay">
-
-    <div class="library-header">
-
-        <button
-            class="icon-btn"
-            id="closeLibrary">
-            ←
-        </button>
-
-        <div>
-            Library
-        </div>
-
-        <div style="width:24px;"></div>
-
-    </div>
-
-    <div
-        class="library-list"
-        id="libraryList">
-    </div>
-
-</div>
-
 <script>
-
-const pdfjsLib =
-    window['pdfjs-dist/build/pdf'];
-
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-const pdfFile =
-    document.getElementById('pdfFile');
-
-const processBtn =
-    document.getElementById('processBtn');
-
-const reader =
-    document.getElementById('reader');
-
-const statusText =
-    document.getElementById('status');
-
-const progressBar =
-    document.getElementById('progressBar');
 
 const notesWrapper =
     document.getElementById('notesWrapper');
 
-const panels =
-    document.getElementById('panels');
-
-const readerPanel =
-    document.getElementById('readerPanel');
-
-const notesPanel =
-    document.getElementById('notesPanel');
-
-const libraryOverlay =
-    document.getElementById('libraryOverlay');
-
-const libraryList =
-    document.getElementById('libraryList');
-
-const fontControls =
-    document.getElementById('fontControls');
-
-const fontPanel =
-    document.getElementById('fontPanel');
-
-const fontToggle =
-    document.getElementById('fontToggle');
-
-const fontSizeDisplay =
-    document.getElementById('fontSizeDisplay');
-
-const DB_NAME =
-    'ai-pdf-reader';
-
-const STORE_NAME =
-    'pdfs';
-
-const LAST_KEY =
-    'last-opened-pdf';
-
-let currentPdfId = null;
-
-let currentFontSize = 1.00;
-
-let showingNotes = false;
-
 let activeInput = null;
-
-function openDatabase(){
-
-    return new Promise((resolve,reject)=>{
-
-        const request =
-            indexedDB.open(DB_NAME,1);
-
-        request.onupgradeneeded =
-            event=>{
-
-            const db =
-                event.target.result;
-
-            if(
-                !db.objectStoreNames.contains(
-                    STORE_NAME
-                )
-            ){
-
-                db.createObjectStore(
-                    STORE_NAME,
-                    {
-                        keyPath:'id'
-                    }
-                );
-
-            }
-
-        };
-
-        request.onsuccess =
-            ()=>resolve(
-                request.result
-            );
-
-        request.onerror =
-            ()=>reject(
-                request.error
-            );
-
-    });
-
-}
-
-async function saveRecord(record){
-
-    const db =
-        await openDatabase();
-
-    return new Promise(resolve=>{
-
-        const tx =
-            db.transaction(
-                STORE_NAME,
-                'readwrite'
-            );
-
-        tx.objectStore(STORE_NAME)
-            .put(record);
-
-        tx.oncomplete =
-            ()=>resolve();
-
-    });
-
-}
-
-async function getAllRecords(){
-
-    const db =
-        await openDatabase();
-
-    return new Promise(resolve=>{
-
-        const tx =
-            db.transaction(
-                STORE_NAME,
-                'readonly'
-            );
-
-        const request =
-            tx.objectStore(STORE_NAME)
-            .getAll();
-
-        request.onsuccess =
-            ()=>resolve(
-                request.result || []
-            );
-
-    });
-
-}
-
-async function removeRecord(id){
-
-    const db =
-        await openDatabase();
-
-    return new Promise(resolve=>{
-
-        const tx =
-            db.transaction(
-                STORE_NAME,
-                'readwrite'
-            );
-
-        tx.objectStore(STORE_NAME)
-            .delete(id);
-
-        tx.oncomplete =
-            ()=>resolve();
-
-    });
-
-}
-
-function setStatus(text){
-
-    statusText.textContent =
-        text;
-}
-
-function setProgress(value){
-
-    progressBar.style.width =
-        value + '%';
-}
-
-function updateFont(){
-
-    document
-        .querySelectorAll('.section')
-        .forEach(section=>{
-
-        section.style.fontSize =
-            currentFontSize + 'rem';
-
-    });
-
-    document
-        .querySelectorAll('.note-input')
-        .forEach(input=>{
-
-        input.style.fontSize =
-            currentFontSize + 'rem';
-
-    });
-
-    fontSizeDisplay.textContent =
-        currentFontSize.toFixed(2) + 'x';
-
-}
-
-function cleanText(text){
-
-    return text
-
-        .replace(/\s+/g,' ')
-
-        .replace(/-\s+/g,'')
-
-        .trim();
-
-}
-
-function findDominantFontSize(items){
-
-    const counts = {};
-
-    items.forEach(item=>{
-
-        if(!item.str.trim()){
-            return;
-        }
-
-        const size =
-            Math.round(item.height);
-
-        counts[size] =
-            (counts[size] || 0) + 1;
-
-    });
-
-    let dominant = 12;
-
-    let highest = 0;
-
-    Object.entries(counts)
-        .forEach(([size,count])=>{
-
-        if(count > highest){
-
-            dominant =
-                Number(size);
-
-            highest =
-                count;
-
-        }
-
-    });
-
-    return dominant;
-
-}
-
-function isBold(item){
-
-    const font =
-        item.fontName
-        ? item.fontName.toLowerCase()
-        : '';
-
-    return (
-
-        font.includes('bold')
-
-        ||
-
-        font.includes('black')
-
-        ||
-
-        font.includes('heavy')
-
-        ||
-
-        font.includes('semibold')
-
-    );
-
-}
-
-function buildBlocks(
-    items,
-    dominantSize
-){
-
-    const blocks = [];
-
-    let current = null;
-
-    let lastY = null;
-
-    let lastType = null;
-
-    items.forEach(item=>{
-
-        const text =
-            cleanText(item.str);
-
-        if(!text){
-            return;
-        }
-
-        const fontSize =
-            Math.round(item.height);
-
-        const y =
-            item.transform[5];
-
-        const gap =
-            lastY !== null
-            &&
-            Math.abs(y-lastY);
-
-        const heading =
-            fontSize > dominantSize
-            ||
-            isBold(item);
-
-        const type =
-            heading
-            ? 'heading'
-            : 'paragraph';
-
-        const shouldBreak =
-
-            !current
-
-            ||
-
-            type !== lastType
-
-            ||
-
-            gap > 42;
-
-        if(shouldBreak){
-
-            current = {
-
-                type,
-
-                text:''
-
-            };
-
-            blocks.push(current);
-
-        }
-
-        current.text +=
-            (
-                current.text
-                ? ' '
-                : ''
-            ) + text;
-
-        lastY = y;
-
-        lastType = type;
-
-    });
-
-    return blocks;
-
-}
-
-function renderBlocks(blocks){
-
-    reader.innerHTML = '';
-
-    const wrapper =
-        document.createElement('section');
-
-    wrapper.className =
-        'section';
-
-    blocks.forEach(block=>{
-
-        const text =
-            block.text.trim();
-
-        if(!text){
-            return;
-        }
-
-        if(
-            block.type === 'heading'
-        ){
-
-            const h =
-                document.createElement('h2');
-
-            h.className =
-                'smart-heading';
-
-            h.textContent =
-                text;
-
-            wrapper.appendChild(h);
-
-        }
-
-        else{
-
-            const p =
-                document.createElement('p');
-
-            p.className =
-                'smart-paragraph';
-
-            p.textContent =
-                text;
-
-            wrapper.appendChild(p);
-
-        }
-
-    });
-
-    reader.appendChild(wrapper);
-
-    updateFont();
-
-}
 
 function autoResize(textarea){
 
@@ -1242,63 +756,73 @@ function autoResize(textarea){
     textarea.style.height =
         textarea.scrollHeight + 'px';
 
-    /*
-    Critical fix:
-
-    Larger textarea gets larger z-index.
-    Therefore a 3-line cell sits ABOVE
-    the cells underneath it.
-    */
-
-    const line =
-        Number(textarea.dataset.line);
-
-    textarea.style.zIndex =
-        1000 + line;
-
 }
 
-async function saveNotes(){
+function updateCoveredCells(){
 
-    if(!currentPdfId){
-        return;
-    }
+    const inputs =
+        [
+            ...document.querySelectorAll('.note-input')
+        ];
 
-    const notes = {};
+    inputs.forEach(input=>{
 
-    document
-        .querySelectorAll('.note-input')
-        .forEach(input=>{
+        input.classList.remove(
+            'covered'
+        );
 
-        if(
-            input.value.trim()
+        input.style.zIndex = '10';
+
+    });
+
+    inputs.forEach(input=>{
+
+        const startLine =
+            Number(input.dataset.line);
+
+        const visualHeight =
+            input.offsetHeight;
+
+        const coveredLines =
+            Math.ceil(
+                visualHeight / 40
+            ) - 1;
+
+        if(coveredLines <= 0){
+            return;
+        }
+
+        input.style.zIndex =
+            1000 + startLine;
+
+        for(
+            let i=1;
+            i<=coveredLines;
+            i++
         ){
 
-            notes[
-                input.dataset.line
-            ] = input.value;
+            const coveredInput =
+                document.querySelector(
+                    '.note-input[data-line="' +
+                    (startLine + i) +
+                    '"]'
+                );
+
+            if(
+                coveredInput
+                &&
+                coveredInput !== input
+            ){
+
+                coveredInput.classList.add(
+                    'covered'
+                );
+
+            }
 
         }
 
     });
-
-    const records =
-        await getAllRecords();
-
-    const record =
-        records.find(
-            item=>
-            item.id === currentPdfId
-        );
-
-    if(!record){
-        return;
-    }
-
-    record.notes =
-        notes;
-
-    await saveRecord(record);
 
 }
 
@@ -1310,7 +834,8 @@ async function closeCurrentInput(){
 
     activeInput.blur();
 
-    activeInput.readOnly = true;
+    activeInput.readOnly =
+        true;
 
     activeInput.classList.remove(
         'editing'
@@ -1320,16 +845,13 @@ async function closeCurrentInput(){
         'closed'
     );
 
-    await saveNotes();
-
     activeInput = null;
+
+    updateCoveredCells();
 
 }
 
-function createNotebook(
-    totalHeight,
-    savedNotes={}
-){
+function createNotebook(){
 
     notesWrapper.innerHTML = '';
 
@@ -1340,7 +862,7 @@ function createNotebook(
         'notes-inner';
 
     notesInner.style.height =
-        totalHeight + 'px';
+        '4000px';
 
     const rulingLayer =
         document.createElement('div');
@@ -1354,14 +876,9 @@ function createNotebook(
     cellsLayer.className =
         'cells-layer';
 
-    const lineCount =
-        Math.ceil(
-            totalHeight / 40
-        );
-
     for(
         let i=0;
-        i<lineCount;
+        i<100;
         i++
     ){
 
@@ -1378,22 +895,10 @@ function createNotebook(
 
     }
 
-    /*
-    IMPORTANT:
-
-    Lower rows are created FIRST.
-    Higher rows are created LAST.
-
-    Therefore higher rows naturally sit
-    on top in stacking order.
-
-    This solves the click problem.
-    */
-
     for(
-        let i=lineCount - 1;
-        i>=0;
-        i--
+        let i=0;
+        i<100;
+        i++
     ){
 
         const row =
@@ -1420,15 +925,6 @@ function createNotebook(
         input.spellcheck =
             false;
 
-        input.value =
-            savedNotes[i] || '';
-
-        requestAnimationFrame(()=>{
-
-            autoResize(input);
-
-        });
-
         input.addEventListener(
             'click',
             event=>{
@@ -1436,16 +932,25 @@ function createNotebook(
             event.stopPropagation();
 
             if(
+                input.classList.contains(
+                    'covered'
+                )
+            ){
+                return;
+            }
+
+            if(
                 activeInput
                 &&
                 activeInput !== input
             ){
-
                 return;
-
             }
 
-            input.readOnly = false;
+            activeInput = input;
+
+            input.readOnly =
+                false;
 
             input.classList.remove(
                 'closed'
@@ -1454,8 +959,6 @@ function createNotebook(
             input.classList.add(
                 'editing'
             );
-
-            activeInput = input;
 
             input.focus();
 
@@ -1466,6 +969,8 @@ function createNotebook(
             ()=>{
 
             autoResize(input);
+
+            updateCoveredCells();
 
         });
 
@@ -1487,393 +992,13 @@ function createNotebook(
         notesInner
     );
 
-    updateFont();
+    requestAnimationFrame(()=>{
 
-}
-
-async function processRecord(record){
-
-    try{
-
-        currentPdfId =
-            record.id;
-
-        localStorage.setItem(
-            LAST_KEY,
-            record.id
-        );
-
-        reader.innerHTML = `
-            <div class="loading">
-                Processing PDF...
-            </div>
-        `;
-
-        setStatus(
-            'Loading PDF...'
-        );
-
-        setProgress(0);
-
-        const buffer =
-            await record.file.arrayBuffer();
-
-        const loadingTask =
-            pdfjsLib.getDocument({
-                data:buffer
-            });
-
-        const pdf =
-            await loadingTask.promise;
-
-        const allItems = [];
-
-        for(
-            let page=1;
-            page<=pdf.numPages;
-            page++
-        ){
-
-            setStatus(
-                'Reading page ' +
-                page +
-                ' of ' +
-                pdf.numPages
-            );
-
-            const pdfPage =
-                await pdf.getPage(page);
-
-            const content =
-                await pdfPage.getTextContent();
-
-            allItems.push(
-                ...content.items
-            );
-
-            setProgress(
-                (
-                    page /
-                    pdf.numPages
-                ) * 100
-            );
-
-        }
-
-        const dominant =
-            findDominantFontSize(
-                allItems
-            );
-
-        const blocks =
-            buildBlocks(
-                allItems,
-                dominant
-            );
-
-        renderBlocks(blocks);
-
-        requestAnimationFrame(()=>{
-
-            createNotebook(
-                reader.scrollHeight,
-                record.notes || {}
-            );
-
-        });
-
-        setStatus(
-            'Complete'
-        );
-
-        fontControls.style.display =
-            'block';
-
-    }catch(error){
-
-        console.error(error);
-
-        reader.innerHTML = `
-            <div class="loading">
-                Error processing PDF.
-            </div>
-        `;
-
-        setStatus(
-            'Error'
-        );
-
-    }
-
-}
-
-async function processNewFile(file){
-
-    if(!file){
-
-        alert(
-            'Please upload a PDF first.'
-        );
-
-        return;
-    }
-
-    const record = {
-
-        id:
-            Date.now().toString(),
-
-        name:
-            file.name,
-
-        file,
-
-        notes:{},
-
-        created:
-            Date.now()
-
-    };
-
-    await saveRecord(record);
-
-    await processRecord(record);
-
-}
-
-async function renderLibrary(){
-
-    const records =
-        await getAllRecords();
-
-    libraryList.innerHTML = '';
-
-    if(!records.length){
-
-        libraryList.innerHTML = `
-            <div class="loading">
-                No PDFs saved yet.
-            </div>
-        `;
-
-        return;
-    }
-
-    records
-        .sort(
-            (a,b)=>
-            b.created - a.created
-        )
-        .forEach(record=>{
-
-        const item =
-            document.createElement('div');
-
-        item.className =
-            'library-item';
-
-        const name =
-            document.createElement('div');
-
-        name.className =
-            'library-name';
-
-        name.textContent =
-            record.name;
-
-        name.addEventListener(
-            'click',
-            async ()=>{
-
-            libraryOverlay.style.display =
-                'none';
-
-            await processRecord(
-                record
-            );
-
-        });
-
-        const remove =
-            document.createElement('button');
-
-        remove.className =
-            'remove-btn';
-
-        remove.textContent =
-            '×';
-
-        remove.addEventListener(
-            'click',
-            async event=>{
-
-            event.stopPropagation();
-
-            await removeRecord(
-                record.id
-            );
-
-            renderLibrary();
-
-        });
-
-        item.appendChild(name);
-
-        item.appendChild(remove);
-
-        libraryList.appendChild(item);
+        updateCoveredCells();
 
     });
 
 }
-
-document
-    .getElementById('copyNotes')
-    .addEventListener(
-        'click',
-        ()=>{
-
-        let text = '';
-
-        document
-            .querySelectorAll('.note-input')
-            .forEach(input=>{
-
-            if(
-                input.value.trim()
-            ){
-
-                text +=
-                    input.value +
-                    '\n';
-
-            }
-
-        });
-
-        navigator.clipboard.writeText(
-            text
-        );
-
-});
-
-processBtn.addEventListener(
-    'click',
-    ()=>{
-
-    processNewFile(
-        pdfFile.files[0]
-    );
-
-});
-
-document
-    .getElementById('libraryBtn')
-    .addEventListener(
-        'click',
-        ()=>{
-
-        libraryOverlay.style.display =
-            'block';
-
-        renderLibrary();
-
-});
-
-document
-    .getElementById('closeLibrary')
-    .addEventListener(
-        'click',
-        ()=>{
-
-        libraryOverlay.style.display =
-            'none';
-
-});
-
-function openNotes(){
-
-    showingNotes = true;
-
-    panels.style.transform =
-        'translateX(-100vw)';
-
-    notesPanel.scrollTop =
-        readerPanel.scrollTop;
-
-}
-
-function closeNotes(){
-
-    showingNotes = false;
-
-    panels.style.transform =
-        'translateX(0)';
-
-    readerPanel.scrollTop =
-        notesPanel.scrollTop;
-
-}
-
-let startX = 0;
-
-let startY = 0;
-
-document.addEventListener(
-    'touchstart',
-    event=>{
-
-    startX =
-        event.touches[0].clientX;
-
-    startY =
-        event.touches[0].clientY;
-
-});
-
-document.addEventListener(
-    'touchend',
-    event=>{
-
-    const endX =
-        event.changedTouches[0].clientX;
-
-    const endY =
-        event.changedTouches[0].clientY;
-
-    const diffX =
-        endX - startX;
-
-    const diffY =
-        Math.abs(
-            endY - startY
-        );
-
-    if(diffY > 80){
-        return;
-    }
-
-    if(
-        diffX < -90
-        &&
-        !showingNotes
-    ){
-
-        openNotes();
-
-    }
-
-    if(
-        diffX > 90
-        &&
-        showingNotes
-    ){
-
-        closeNotes();
-
-    }
-
-});
 
 document.addEventListener(
     'click',
@@ -1892,130 +1017,7 @@ document.addEventListener(
 
 });
 
-fontToggle.addEventListener(
-    'click',
-    ()=>{
-
-    fontPanel.style.display =
-
-        fontPanel.style.display ===
-        'block'
-        ? 'none'
-        : 'block';
-
-});
-
-document
-    .getElementById('fontUp')
-    .addEventListener(
-        'click',
-        ()=>{
-
-        currentFontSize += 0.08;
-
-        updateFont();
-
-});
-
-document
-    .getElementById('fontDown')
-    .addEventListener(
-        'click',
-        ()=>{
-
-        currentFontSize =
-            Math.max(
-                0.75,
-                currentFontSize - 0.08
-            );
-
-        updateFont();
-
-});
-
-window.addEventListener(
-    'load',
-    async ()=>{
-
-    try{
-
-        const lastId =
-            localStorage.getItem(
-                LAST_KEY
-            );
-
-        if(!lastId){
-            return;
-        }
-
-        const records =
-            await getAllRecords();
-
-        const record =
-            records.find(
-                item=>
-                item.id === lastId
-            );
-
-        if(record){
-
-            await processRecord(
-                record
-            );
-
-        }
-
-    }catch(error){
-
-        console.error(error);
-
-    }
-
-});
-
-document.addEventListener(
-    'click',
-    event=>{
-
-    const inside =
-        fontPanel.contains(
-            event.target
-        );
-
-    const toggle =
-        fontToggle.contains(
-            event.target
-        );
-
-    if(
-        !inside
-        &&
-        !toggle
-    ){
-
-        fontPanel.style.display =
-            'none';
-
-    }
-
-});
-
-if(
-    'serviceWorker'
-    in navigator
-){
-
-    window.addEventListener(
-        'load',
-        ()=>{
-
-        navigator.serviceWorker.register(
-            './service-worker.js'
-        );
-
-    });
-
-}
+createNotebook();
 
 </script>
 
