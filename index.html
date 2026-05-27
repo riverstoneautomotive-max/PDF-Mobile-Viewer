@@ -130,6 +130,12 @@ header{
     backdrop-filter:blur(14px);
 
     border-bottom:1px solid var(--border);
+
+    position:sticky;
+
+    top:0;
+
+    z-index:2000;
 }
 
 .header-btn{
@@ -221,11 +227,19 @@ button:hover{
 
 .font-row{
 
+    position:sticky;
+
+    top:106px;
+
+    z-index:1800;
+
     display:flex;
 
     justify-content:flex-end;
 
     padding:12px 16px 0;
+
+    pointer-events:none;
 }
 
 .floating{
@@ -233,13 +247,15 @@ button:hover{
     display:none;
 
     position:relative;
+
+    pointer-events:auto;
 }
 
 .fab{
 
-    width:38px;
+    width:42px;
 
-    height:38px;
+    height:42px;
 
     border-radius:999px;
 
@@ -256,13 +272,15 @@ button:hover{
     align-items:center;
 
     justify-content:center;
+
+    font-weight:700;
 }
 
 .font-panel{
 
     position:absolute;
 
-    top:50px;
+    top:56px;
 
     right:0;
 
@@ -313,7 +331,7 @@ main{
 
     margin:0 auto;
 
-    padding:0 24px 120px;
+    padding:0 0 120px;
 }
 
 .section{
@@ -336,6 +354,8 @@ main{
     margin-bottom:1.3rem;
 
     font-weight:700;
+
+    padding:0 18px;
 }
 
 .smart-paragraph{
@@ -343,6 +363,13 @@ main{
     margin:0 0 1.55rem;
 
     text-align:justify;
+
+    padding:0 18px;
+}
+
+.smart-italic{
+
+    font-style:italic;
 }
 
 .smart-link{
@@ -352,16 +379,17 @@ main{
     text-decoration:none;
 
     word-break:break-word;
+
+    border-bottom:1px solid rgba(202,185,127,0.45);
+
+    transition:0.2s;
 }
 
 .smart-link:hover{
 
-    text-decoration:underline;
-}
+    color:#fff;
 
-.smart-italic{
-
-    font-style:italic;
+    border-bottom-color:#fff;
 }
 
 .loading{
@@ -381,6 +409,12 @@ main{
 }
 
 .notes-header{
+
+    position:sticky;
+
+    top:0;
+
+    z-index:2000;
 
     padding:16px;
 
@@ -418,7 +452,7 @@ main{
 
     margin:0 auto;
 
-    padding:0 24px 120px;
+    padding:0 18px 120px;
 }
 
 .notes-inner{
@@ -779,6 +813,7 @@ main{
         <button id="importBtn" class="header-btn">
             Import
         </button>
+
     </div>
 
     <div class="progress-wrapper">
@@ -1200,21 +1235,84 @@ function updateFont(){
 
 }
 
-/* CLEAN */
+/* CLEAN TEXT */
 
 function cleanText(text){
 
     return text
 
-        /* remove isolated numbers */
-
-        .replace(/\s\d+\s/g,' ')
-
         .replace(/\s+/g,' ')
 
         .replace(/-\s+/g,'')
 
+        .replace(/\s\d+\s/g,' ')
+
         .trim();
+
+}
+
+/* URL FORMAT */
+
+function createFormattedText(container,text,isItalic=false){
+
+    const urlRegex =
+        /(https:\/\/[^\s]+)/g;
+
+    const parts =
+        text.split(urlRegex);
+
+    parts.forEach(part=>{
+
+        if(!part){
+            return;
+        }
+
+        const isUrl =
+            part.startsWith('https://');
+
+        if(isUrl){
+
+            const link =
+                document.createElement('a');
+
+            link.href =
+                part;
+
+            link.target =
+                '_blank';
+
+            link.rel =
+                'noopener noreferrer';
+
+            link.className =
+                'smart-link';
+
+            link.textContent =
+                part;
+
+            container.appendChild(link);
+
+        }else{
+
+            const span =
+                document.createElement('span');
+
+            span.textContent =
+                part;
+
+            if(isItalic){
+
+                span.classList.add(
+                    'smart-italic'
+                );
+
+            }
+
+            container.appendChild(span);
+
+        }
+
+    });
 
 }
 
@@ -1311,25 +1409,6 @@ function isItalic(item){
 
 }
 
-/* HEADING DETECTION */
-
-function looksLikeHeading(text){
-
-    const trimmed =
-        text.trim();
-
-    if(!trimmed){
-        return false;
-    }
-
-    const noPunctuation =
-        !/[.!?:;"')\]]$/.test(
-            trimmed
-        );
-
-    return noPunctuation;
-}
-
 /* BUILD BLOCKS */
 
 function buildBlocks(
@@ -1365,33 +1444,18 @@ function buildBlocks(
             &&
             Math.abs(y-lastY);
 
-        let type =
-            'paragraph';
-
-        const largerThanBody =
-            fontSize > dominantSize;
-
-        const bold =
+        const heading =
+            fontSize > dominantSize
+            ||
             isBold(item);
 
-        const headingLike =
-            looksLikeHeading(text);
+        const italic =
+            isItalic(item);
 
-        if(
-            largerThanBody
-            ||
-            bold
-            ||
-            (
-                gap > 28
-                &&
-                headingLike
-            )
-        ){
-
-            type = 'heading';
-
-        }
+        const type =
+            heading
+            ? 'heading'
+            : 'paragraph';
 
         const shouldBreak =
 
@@ -1411,7 +1475,7 @@ function buildBlocks(
 
                 type,
 
-                fragments:[]
+                segments:[]
 
             };
 
@@ -1419,11 +1483,11 @@ function buildBlocks(
 
         }
 
-        current.fragments.push({
+        current.segments.push({
 
             text,
 
-            italic:isItalic(item)
+            italic
 
         });
 
@@ -1434,94 +1498,6 @@ function buildBlocks(
     });
 
     return blocks;
-
-}
-
-/* INLINE FORMATTER */
-
-function appendFormattedContent(
-    element,
-    fragments
-){
-
-    fragments.forEach(
-        (fragment,index)=>{
-
-        const parts =
-            fragment.text.split(
-                /(https:\/\/[^\s]+)/g
-            );
-
-        parts.forEach(part=>{
-
-            if(!part){
-                return;
-            }
-
-            const isLink =
-                /^https:\/\/[^\s]+$/
-                .test(part);
-
-            let node;
-
-            if(isLink){
-
-                node =
-                    document.createElement('a');
-
-                node.href =
-                    part;
-
-                node.target =
-                    '_blank';
-
-                node.rel =
-                    'noopener noreferrer';
-
-                node.className =
-                    'smart-link';
-
-                node.textContent =
-                    part;
-
-            }else{
-
-                if(fragment.italic){
-
-                    node =
-                        document.createElement('em');
-
-                    node.className =
-                        'smart-italic';
-
-                }else{
-
-                    node =
-                        document.createElement('span');
-
-                }
-
-                node.textContent =
-                    part;
-
-            }
-
-            element.appendChild(node);
-
-        });
-
-        if(
-            index <
-            fragments.length - 1
-        ){
-
-            element.appendChild(
-                document.createTextNode(' ')
-            );
-
-        }
-
-    });
 
 }
 
@@ -1539,19 +1515,6 @@ function renderBlocks(blocks){
 
     blocks.forEach(block=>{
 
-        const combinedText =
-            block.fragments
-            .map(
-                fragment=>
-                fragment.text
-            )
-            .join(' ')
-            .trim();
-
-        if(!combinedText){
-            return;
-        }
-
         if(
             block.type === 'heading'
         ){
@@ -1562,10 +1525,16 @@ function renderBlocks(blocks){
             h.className =
                 'smart-heading';
 
-            appendFormattedContent(
-                h,
-                block.fragments
-            );
+            block.segments.forEach(
+                segment=>{
+
+                createFormattedText(
+                    h,
+                    segment.text + ' ',
+                    segment.italic
+                );
+
+            });
 
             wrapper.appendChild(h);
 
@@ -1579,10 +1548,16 @@ function renderBlocks(blocks){
             p.className =
                 'smart-paragraph';
 
-            appendFormattedContent(
-                p,
-                block.fragments
-            );
+            block.segments.forEach(
+                segment=>{
+
+                createFormattedText(
+                    p,
+                    segment.text + ' ',
+                    segment.italic
+                );
+
+            });
 
             wrapper.appendChild(p);
 
