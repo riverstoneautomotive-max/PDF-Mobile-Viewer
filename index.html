@@ -131,11 +131,9 @@ header{
 
     border-bottom:1px solid var(--border);
 
-    position:sticky;
+    position:relative;
 
-    top:0;
-
-    z-index:2000;
+    z-index:100;
 }
 
 .header-btn{
@@ -234,14 +232,6 @@ button:hover{
     justify-content:flex-end;
 
     padding:12px 16px 0;
-
-    position:sticky;
-
-    top:98px;
-
-    z-index:1800;
-
-    pointer-events:none;
 }
 
 .floating{
@@ -249,8 +239,6 @@ button:hover{
     display:none;
 
     position:relative;
-
-    pointer-events:auto;
 }
 
 .fab{
@@ -295,6 +283,8 @@ button:hover{
     padding:14px;
 
     display:none;
+
+    z-index:500;
 }
 
 .font-controls{
@@ -421,12 +411,6 @@ main{
     background:rgba(17,19,15,0.96);
 
     backdrop-filter:blur(14px);
-
-    position:sticky;
-
-    top:0;
-
-    z-index:2000;
 }
 
 .copy-btn{
@@ -593,17 +577,11 @@ main{
 
     position:absolute;
 
-    top:0;
-
-    left:0;
-
-    width:100%;
-
-    height:100%;
+    inset:0;
 
     pointer-events:none;
 
-    z-index:1200;
+    z-index:150;
 }
 
 .bookmark{
@@ -612,40 +590,25 @@ main{
 
     left:0;
 
-    width:78px;
+    width:72px;
 
     height:18px;
 
-    border-radius:0 10px 10px 0;
+    border-radius:0 999px 999px 0;
 
     pointer-events:auto;
 
-    touch-action:none;
+    transform:translateX(-46px);
 
-    transition:transform 0.18s ease;
+    transition:transform 0.22s ease;
+
+    box-shadow:
+        0 3px 10px rgba(0,0,0,0.35);
 }
 
-.bookmark::before{
+.bookmark.open{
 
-    content:'';
-
-    position:absolute;
-
-    left:-10px;
-
-    top:0;
-
-    width:18px;
-
-    height:18px;
-
-    clip-path:polygon(
-        100% 0,
-        100% 100%,
-        0 50%
-    );
-
-    background:inherit;
+    transform:translateX(0);
 }
 
 .bookmark::after{
@@ -658,52 +621,67 @@ main{
 
     top:0;
 
-    width:18px;
+    width:0;
 
-    height:18px;
+    height:0;
 
-    clip-path:polygon(
-        0 0,
-        100% 50%,
-        0 100%
-    );
+    border-top:9px solid transparent;
 
-    background:inherit;
+    border-bottom:9px solid transparent;
+
+    border-left:10px solid currentColor;
+
+    filter:brightness(1.08);
 }
 
-.bookmark:hover{
+.bookmark-handle{
 
-    transform:translateX(4px);
+    position:absolute;
+
+    inset:0;
+
+    cursor:pointer;
 }
 
 .bookmark-color-picker{
 
-    position:fixed;
+    position:absolute;
+
+    top:24px;
+
+    left:76px;
 
     display:none;
 
-    gap:12px;
+    align-items:center;
+
+    gap:8px;
 
     background:#1a1c17;
 
     border:1px solid var(--border);
 
-    border-radius:18px;
+    padding:10px;
 
-    padding:14px;
+    border-radius:16px;
 
-    z-index:7000;
+    z-index:1000;
 }
 
-.color-choice{
+.bookmark-color-picker.show{
 
-    width:28px;
+    display:flex;
+}
 
-    height:28px;
+.bookmark-color{
+
+    width:22px;
+
+    height:22px;
 
     border-radius:999px;
 
-    border:2px solid rgba(255,255,255,0.18);
+    border:2px solid rgba(255,255,255,0.14);
 
     cursor:pointer;
 }
@@ -990,7 +968,7 @@ main{
 
             </div>
 
-            <main id="readerMain">
+            <main>
 
                 <div
                     class="bookmark-layer"
@@ -1034,13 +1012,6 @@ main{
 
     </div>
 
-</div>
-
-<!-- BOOKMARK COLOR PICKER -->
-
-<div
-    class="bookmark-color-picker"
-    id="bookmarkColorPicker">
 </div>
 
 <!-- LIBRARY -->
@@ -1191,9 +1162,6 @@ const fontSizeDisplay =
 const bookmarkLayer =
     document.getElementById('bookmarkLayer');
 
-const bookmarkColorPicker =
-    document.getElementById('bookmarkColorPicker');
-
 /* STORAGE */
 
 const DB_NAME =
@@ -1217,33 +1185,19 @@ let activeInput = null;
 
 let bookmarks = [];
 
-let bookmarkCounter = 0;
-
-let swipeStartX = 0;
-
-let swipeStartY = 0;
-
-let swipeTargetBookmark = null;
-
-/* COLORS */
-
 const BOOKMARK_COLORS = [
 
     '#9d9162',
 
-    '#b25d54',
+    '#c65f5f',
 
-    '#5d7ab2',
+    '#5f8cc6',
 
-    '#4e9b74',
+    '#5fa773',
 
-    '#a05db2',
+    '#8a5fc6',
 
-    '#d59a42',
-
-    '#c94f7c',
-
-    '#5f8f96'
+    '#d69543'
 
 ];
 
@@ -1368,6 +1322,212 @@ async function removeRecord(id){
             ()=>resolve();
 
     });
+
+}
+
+/* SAVE BOOKMARKS */
+
+async function saveBookmarks(){
+
+    if(!currentPdfId){
+        return;
+    }
+
+    const records =
+        await getAllRecords();
+
+    const record =
+        records.find(
+            item=>
+            item.id === currentPdfId
+        );
+
+    if(!record){
+        return;
+    }
+
+    record.bookmarks =
+        bookmarks;
+
+    await saveRecord(record);
+
+}
+
+/* BOOKMARK UI */
+
+function renderBookmarks(){
+
+    bookmarkLayer.innerHTML = '';
+
+    bookmarks.forEach(bookmark=>{
+
+        const element =
+            document.createElement('div');
+
+        element.className =
+            'bookmark open';
+
+        element.dataset.id =
+            bookmark.id;
+
+        element.style.top =
+            bookmark.top + 'px';
+
+        element.style.background =
+            bookmark.color;
+
+        element.style.color =
+            bookmark.color;
+
+        const handle =
+            document.createElement('div');
+
+        handle.className =
+            'bookmark-handle';
+
+        const picker =
+            document.createElement('div');
+
+        picker.className =
+            'bookmark-color-picker';
+
+        BOOKMARK_COLORS.forEach(color=>{
+
+            const option =
+                document.createElement('div');
+
+            option.className =
+                'bookmark-color';
+
+            option.style.background =
+                color;
+
+            option.addEventListener(
+                'click',
+                async event=>{
+
+                event.stopPropagation();
+
+                bookmark.color =
+                    color;
+
+                await saveBookmarks();
+
+                renderBookmarks();
+
+            });
+
+            picker.appendChild(option);
+
+        });
+
+        let longPressTimer =
+            null;
+
+        handle.addEventListener(
+            'touchstart',
+            event=>{
+
+            event.stopPropagation();
+
+            longPressTimer =
+                setTimeout(()=>{
+
+                picker.classList.add(
+                    'show'
+                );
+
+            },500);
+
+        });
+
+        handle.addEventListener(
+            'touchend',
+            ()=>{
+
+            clearTimeout(
+                longPressTimer
+            );
+
+        });
+
+        let bookmarkStartX =
+            0;
+
+        handle.addEventListener(
+            'touchstart',
+            event=>{
+
+            bookmarkStartX =
+                event.touches[0].clientX;
+
+        });
+
+        handle.addEventListener(
+            'touchend',
+            async event=>{
+
+            const endX =
+                event.changedTouches[0].clientX;
+
+            const diffX =
+                endX - bookmarkStartX;
+
+            if(diffX < -60){
+
+                bookmarks =
+                    bookmarks.filter(
+                        item=>
+                        item.id !== bookmark.id
+                    );
+
+                await saveBookmarks();
+
+                renderBookmarks();
+
+            }
+
+        });
+
+        element.appendChild(handle);
+
+        element.appendChild(picker);
+
+        bookmarkLayer.appendChild(
+            element
+        );
+
+    });
+
+}
+
+/* ADD BOOKMARK */
+
+async function addBookmark(positionY){
+
+    if(!currentPdfId){
+        return;
+    }
+
+    const top =
+        positionY +
+        readerPanel.scrollTop;
+
+    bookmarks.push({
+
+        id:
+            Date.now().toString() +
+            Math.random(),
+
+        top,
+
+        color:'#9d9162'
+
+    });
+
+    await saveBookmarks();
+
+    renderBookmarks();
 
 }
 
@@ -1544,6 +1704,53 @@ function buildInlineParts(items){
 }
 
 /* SMART LINK DETECTION */
+
+function normalizeBrokenUrl(text){
+
+    let result = '';
+
+    let visibleCount = 0;
+
+    for(
+        let i = 0;
+        i < text.length;
+        i++
+    ){
+
+        const char =
+            text[i];
+
+        if(
+            visibleCount < 7
+            &&
+            (
+                char === ' '
+                ||
+                char === '\n'
+            )
+        ){
+
+            continue;
+
+        }
+
+        result += char;
+
+        if(
+            char !== ' '
+            &&
+            char !== '\n'
+        ){
+
+            visibleCount++;
+
+        }
+
+    }
+
+    return result;
+
+}
 
 function extractLinks(text){
 
@@ -2040,9 +2247,9 @@ function updateCoveredCells(){
 
 }
 
-/* SAVE NOTES + BOOKMARKS */
+/* SAVE NOTES */
 
-async function saveDocumentState(){
+async function saveNotes(){
 
     if(!currentPdfId){
         return;
@@ -2081,9 +2288,6 @@ async function saveDocumentState(){
 
     record.notes =
         notes;
-
-    record.bookmarks =
-        bookmarks;
 
     await saveRecord(record);
 
@@ -2142,7 +2346,7 @@ async function closeCurrentInput(){
     activeInput.style.zIndex =
         '5';
 
-    await saveDocumentState();
+    await saveNotes();
 
     activeInput = null;
 
@@ -2326,179 +2530,6 @@ function createNotebook(
 
 }
 
-/* BOOKMARKS */
-
-function renderBookmarks(){
-
-    bookmarkLayer.innerHTML = '';
-
-    bookmarks.forEach(bookmark=>{
-
-        const element =
-            document.createElement('div');
-
-        element.className =
-            'bookmark';
-
-        element.dataset.id =
-            bookmark.id;
-
-        element.style.top =
-            bookmark.y + 'px';
-
-        element.style.background =
-            bookmark.color;
-
-        let holdTimer = null;
-
-        element.addEventListener(
-            'touchstart',
-            event=>{
-
-            swipeTargetBookmark =
-                bookmark.id;
-
-            swipeStartX =
-                event.touches[0].clientX;
-
-            swipeStartY =
-                event.touches[0].clientY;
-
-            holdTimer =
-                setTimeout(()=>{
-
-                openBookmarkColorPicker(
-                    bookmark,
-                    event.touches[0].clientX,
-                    event.touches[0].clientY
-                );
-
-            },500);
-
-        });
-
-        element.addEventListener(
-            'touchmove',
-            ()=>{
-
-            clearTimeout(holdTimer);
-
-        });
-
-        element.addEventListener(
-            'touchend',
-            async event=>{
-
-            clearTimeout(holdTimer);
-
-            const endX =
-                event.changedTouches[0].clientX;
-
-            const diffX =
-                endX - swipeStartX;
-
-            if(diffX < -60){
-
-                bookmarks =
-                    bookmarks.filter(
-                        item=>
-                        item.id !== bookmark.id
-                    );
-
-                renderBookmarks();
-
-                await saveDocumentState();
-
-            }
-
-        });
-
-        bookmarkLayer.appendChild(
-            element
-        );
-
-    });
-
-}
-
-function openBookmarkColorPicker(
-    bookmark,
-    x,
-    y
-){
-
-    bookmarkColorPicker.innerHTML =
-        '';
-
-    BOOKMARK_COLORS.forEach(color=>{
-
-        const choice =
-            document.createElement('div');
-
-        choice.className =
-            'color-choice';
-
-        choice.style.background =
-            color;
-
-        choice.addEventListener(
-            'click',
-            async ()=>{
-
-            bookmark.color =
-                color;
-
-            renderBookmarks();
-
-            bookmarkColorPicker.style.display =
-                'none';
-
-            await saveDocumentState();
-
-        });
-
-        bookmarkColorPicker.appendChild(
-            choice
-        );
-
-    });
-
-    bookmarkColorPicker.style.left =
-        x + 'px';
-
-    bookmarkColorPicker.style.top =
-        y + 'px';
-
-    bookmarkColorPicker.style.display =
-        'flex';
-
-}
-
-async function createBookmark(y){
-
-    bookmarks.push({
-
-        id:
-            'bookmark-' +
-            bookmarkCounter++,
-
-        y,
-
-        color:
-            getComputedStyle(
-                document.documentElement
-            ).getPropertyValue(
-                '--accent'
-            ).trim()
-
-    });
-
-    renderBookmarks();
-
-    await saveDocumentState();
-
-}
-
 /* PROCESS */
 
 async function processRecord(record){
@@ -2510,9 +2541,6 @@ async function processRecord(record){
 
         bookmarks =
             record.bookmarks || [];
-
-        bookmarkCounter =
-            bookmarks.length;
 
         localStorage.setItem(
             LAST_KEY,
@@ -2892,7 +2920,7 @@ pdfFile.addEventListener(
 
 });
 
-/* NOTES */
+/* SWIPE */
 
 function openNotes(){
 
@@ -2918,22 +2946,19 @@ function closeNotes(){
 
 }
 
-/* GLOBAL SWIPE */
+let startX = 0;
+
+let startY = 0;
 
 document.addEventListener(
     'touchstart',
     event=>{
 
-    swipeStartX =
+    startX =
         event.touches[0].clientX;
 
-    swipeStartY =
+    startY =
         event.touches[0].clientY;
-
-    swipeTargetBookmark =
-        event.target.closest(
-            '.bookmark'
-        );
 
 });
 
@@ -2948,59 +2973,44 @@ document.addEventListener(
         event.changedTouches[0].clientY;
 
     const diffX =
-        endX - swipeStartX;
+        endX - startX;
 
     const diffY =
         Math.abs(
-            endY - swipeStartY
+            endY - startY
         );
 
     if(diffY > 80){
         return;
     }
 
-    /* BOOKMARK CREATION */
+    const targetBookmark =
+        event.target.closest(
+            '.bookmark'
+        );
 
     if(
-
         diffX > 90
-
         &&
-
         !showingNotes
-
         &&
-
-        !swipeTargetBookmark
-
+        startX < 50
         &&
-
-        swipeStartX < 36
-
+        !targetBookmark
     ){
 
-        const scrollY =
-            readerPanel.scrollTop;
-
-        const y =
-            scrollY +
-            swipeStartY -
-            20;
-
-        await createBookmark(y);
+        await addBookmark(endY);
 
         return;
 
     }
-
-    /* NORMAL NOTES OPEN */
 
     if(
         diffX < -90
         &&
         !showingNotes
         &&
-        !swipeTargetBookmark
+        !targetBookmark
     ){
 
         openNotes();
@@ -3036,16 +3046,25 @@ document.addEventListener(
 
     }
 
-    if(
-        !event.target.closest(
+    document
+        .querySelectorAll(
             '.bookmark-color-picker'
         )
-    ){
+        .forEach(picker=>{
 
-        bookmarkColorPicker.style.display =
-            'none';
+        if(
+            !picker.contains(
+                event.target
+            )
+        ){
 
-    }
+            picker.classList.remove(
+                'show'
+            );
+
+        }
+
+    });
 
 });
 
