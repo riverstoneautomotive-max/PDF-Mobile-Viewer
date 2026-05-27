@@ -605,9 +605,9 @@ main{
     box-shadow:
         0 4px 14px rgba(0,0,0,0.28);
 
-    border-radius:0 12px 12px 0;
-
     overflow:visible;
+
+    /* TRUE FISHTAIL */
 
     clip-path:polygon(
         0 0,
@@ -653,6 +653,8 @@ main{
     inset:0;
 
     cursor:pointer;
+
+    z-index:5;
 }
 
 /* COLOR PICKER */
@@ -679,7 +681,9 @@ main{
 
     border-radius:16px;
 
-    z-index:1000;
+    z-index:10000;
+
+    pointer-events:auto;
 }
 
 .bookmark-color-picker.show{
@@ -698,6 +702,8 @@ main{
     border:2px solid rgba(255,255,255,0.14);
 
     cursor:pointer;
+
+    flex-shrink:0;
 }
 
 /* LIBRARY */
