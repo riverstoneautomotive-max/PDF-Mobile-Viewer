@@ -80,6 +80,8 @@ body{
     touch-action:pan-y;
 }
 
+/* VIEWPORT */
+
 .viewport{
 
     position:fixed;
@@ -182,6 +184,8 @@ button:hover{
 
     font-size:14px;
 }
+
+/* PROGRESS */
 
 .progress-wrapper{
 
@@ -405,15 +409,17 @@ main{
     width:100%;
 }
 
+/* RULING LAYER */
+
 .ruling-layer{
 
     position:absolute;
 
     inset:0;
 
-    z-index:1;
-
     pointer-events:none;
+
+    z-index:1;
 }
 
 .ruling-line{
@@ -428,6 +434,8 @@ main{
 
     background:rgba(157,153,135,0.18);
 }
+
+/* CELLS */
 
 .cells-layer{
 
@@ -448,6 +456,8 @@ main{
 
     height:40px;
 }
+
+/* INPUT */
 
 .note-input{
 
@@ -489,23 +499,24 @@ main{
 
     caret-color:var(--accent-light);
 
-    z-index:10;
+    z-index:5;
 }
+
+/* RULING REMAINS VISIBLE */
+
+.note-input.editing{
+
+    background:rgba(17,19,15,0.05);
+}
+
+/* CLOSED */
 
 .note-input.closed{
 
     cursor:text;
 }
 
-.note-input.covered{
-
-    pointer-events:none;
-}
-
-.note-input.editing{
-
-    z-index:9999;
-}
+/* DISABLED */
 
 .note-input.disabled{
 
@@ -917,6 +928,8 @@ function openDatabase(){
 
 }
 
+/* SAVE */
+
 async function saveRecord(record){
 
     const db =
@@ -939,6 +952,8 @@ async function saveRecord(record){
     });
 
 }
+
+/* GET */
 
 async function getAllRecords(){
 
@@ -966,6 +981,8 @@ async function getAllRecords(){
 
 }
 
+/* REMOVE */
+
 async function removeRecord(id){
 
     const db =
@@ -989,51 +1006,6 @@ async function removeRecord(id){
 
 }
 
-/* RECOVERY */
-
-async function recoverFromCorruptedPDF(id){
-
-    try{
-
-        await removeRecord(id);
-
-    }catch(error){
-
-        console.error(error);
-
-    }
-
-    if(
-        localStorage.getItem(
-            LAST_KEY
-        ) === id
-    ){
-
-        localStorage.removeItem(
-            LAST_KEY
-        );
-
-    }
-
-    reader.innerHTML = `
-        <div class="loading">
-            Corrupted PDF removed.
-            Please reopen the app.
-        </div>
-    `;
-
-    setStatus(
-        'Recovered'
-    );
-
-    setTimeout(()=>{
-
-        location.reload();
-
-    },800);
-
-}
-
 /* STATUS */
 
 function setStatus(text){
@@ -1041,6 +1013,8 @@ function setStatus(text){
     statusText.textContent =
         text;
 }
+
+/* PROGRESS */
 
 function setProgress(value){
 
@@ -1075,7 +1049,7 @@ function updateFont(){
 
 }
 
-/* PDF TEXT */
+/* CLEAN */
 
 function cleanText(text){
 
@@ -1088,6 +1062,8 @@ function cleanText(text){
         .trim();
 
 }
+
+/* DOMINANT FONT */
 
 function findDominantFontSize(items){
 
@@ -1130,6 +1106,8 @@ function findDominantFontSize(items){
 
 }
 
+/* BOLD */
+
 function isBold(item){
 
     const font =
@@ -1156,6 +1134,8 @@ function isBold(item){
     );
 
 }
+
+/* BUILD BLOCKS */
 
 function buildBlocks(
     items,
@@ -1243,6 +1223,8 @@ function buildBlocks(
 
 }
 
+/* RENDER */
+
 function renderBlocks(blocks){
 
     reader.innerHTML = '';
@@ -1302,7 +1284,7 @@ function renderBlocks(blocks){
 
 }
 
-/* NOTEBOOK */
+/* AUTO RESIZE */
 
 function autoResize(textarea){
 
@@ -1314,63 +1296,7 @@ function autoResize(textarea){
 
 }
 
-function updateCoveredCells(){
-
-    const inputs =
-        Array.from(
-            document.querySelectorAll(
-                '.note-input'
-            )
-        );
-
-    inputs.forEach(input=>{
-
-        input.classList.remove(
-            'covered'
-        );
-
-    });
-
-    inputs.forEach(input=>{
-
-        const height =
-            input.offsetHeight;
-
-        const coveredLines =
-            Math.floor(
-                (height - 1) / 40
-            );
-
-        for(
-            let i=1;
-            i<=coveredLines;
-            i++
-        ){
-
-            const lower =
-                document.querySelector(
-                    '.note-input[data-line="' +
-                    (
-                        parseInt(
-                            input.dataset.line
-                        ) + i
-                    ) +
-                    '"]'
-                );
-
-            if(lower){
-
-                lower.classList.add(
-                    'covered'
-                );
-
-            }
-
-        }
-
-    });
-
-}
+/* SAVE NOTES */
 
 async function saveNotes(){
 
@@ -1416,24 +1342,13 @@ async function saveNotes(){
 
 }
 
+/* ENABLE / DISABLE */
+
 function updateCellAvailability(){
 
     document
         .querySelectorAll('.note-input')
         .forEach(input=>{
-
-        if(
-            input.classList.contains(
-                'covered'
-            )
-        ){
-
-            input.classList.add(
-                'disabled'
-            );
-
-            return;
-        }
 
         if(
             activeInput
@@ -1457,6 +1372,8 @@ function updateCellAvailability(){
 
 }
 
+/* CLOSE INPUT */
+
 async function closeCurrentInput(){
 
     if(!activeInput){
@@ -1475,15 +1392,18 @@ async function closeCurrentInput(){
         'closed'
     );
 
+    activeInput.style.zIndex =
+        '5';
+
     await saveNotes();
 
     activeInput = null;
 
-    updateCoveredCells();
-
     updateCellAvailability();
 
 }
+
+/* NOTEBOOK */
 
 function createNotebook(
     totalHeight,
@@ -1518,6 +1438,8 @@ function createNotebook(
             totalHeight / 40
         );
 
+    /* RULING */
+
     for(
         let i=0;
         i<lineCount;
@@ -1536,6 +1458,8 @@ function createNotebook(
         rulingLayer.appendChild(line);
 
     }
+
+    /* CELLS */
 
     for(
         let i=0;
@@ -1570,34 +1494,19 @@ function createNotebook(
         input.value =
             savedNotes[i] || '';
 
-        row.appendChild(input);
-
-        cellsLayer.appendChild(row);
-
         requestAnimationFrame(()=>{
 
             autoResize(input);
 
-            updateCoveredCells();
-
-            updateCellAvailability();
-
         });
 
+        /* OPEN */
+
         input.addEventListener(
-            'pointerdown',
+            'click',
             event=>{
 
             event.stopPropagation();
-
-            if(
-                input.classList.contains(
-                    'covered'
-                )
-            ){
-
-                return;
-            }
 
             if(
                 activeInput
@@ -1606,6 +1515,7 @@ function createNotebook(
             ){
 
                 return;
+
             }
 
             input.readOnly = false;
@@ -1618,17 +1528,26 @@ function createNotebook(
                 'editing'
             );
 
+            input.style.zIndex =
+                '999';
+
             activeInput = input;
 
             updateCellAvailability();
 
-            requestAnimationFrame(()=>{
+            input.focus();
 
-                input.focus();
+            const length =
+                input.value.length;
 
-            });
+            input.setSelectionRange(
+                length,
+                length
+            );
 
         });
+
+        /* INPUT */
 
         input.addEventListener(
             'input',
@@ -1636,11 +1555,11 @@ function createNotebook(
 
             autoResize(input);
 
-            updateCoveredCells();
-
-            updateCellAvailability();
-
         });
+
+        row.appendChild(input);
+
+        cellsLayer.appendChild(row);
 
     }
 
@@ -1697,22 +1616,6 @@ async function processRecord(record){
         const pdf =
             await loadingTask.promise;
 
-        /* VALIDATION */
-
-        if(
-            !pdf
-            ||
-            !pdf.numPages
-            ||
-            pdf.numPages < 1
-        ){
-
-            throw new Error(
-                'Invalid PDF'
-            );
-
-        }
-
         const allItems = [];
 
         for(
@@ -1733,18 +1636,6 @@ async function processRecord(record){
 
             const content =
                 await pdfPage.getTextContent();
-
-            if(
-                !content
-                ||
-                !content.items
-            ){
-
-                throw new Error(
-                    'Corrupted page'
-                );
-
-            }
 
             allItems.push(
                 ...content.items
@@ -1792,8 +1683,14 @@ async function processRecord(record){
 
         console.error(error);
 
-        await recoverFromCorruptedPDF(
-            record.id
+        reader.innerHTML = `
+            <div class="loading">
+                Error processing PDF.
+            </div>
+        `;
+
+        setStatus(
+            'Error'
         );
 
     }
@@ -2177,19 +2074,6 @@ window.addEventListener(
     }catch(error){
 
         console.error(error);
-
-        const lastId =
-            localStorage.getItem(
-                LAST_KEY
-            );
-
-        if(lastId){
-
-            await recoverFromCorruptedPDF(
-                lastId
-            );
-
-        }
 
     }
 
