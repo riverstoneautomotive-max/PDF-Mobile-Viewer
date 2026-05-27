@@ -590,22 +590,24 @@ main{
 
     left:0;
 
-    width:110px;
+    width:74vw;
 
-    height:100px;
+    max-width:620px;
+
+    height:92px;
 
     pointer-events:auto;
 
-    transform:translateX(-72px);
+    transform:translateX(calc(-74vw + 44px));
 
-    transition:transform 0.22s ease;
+    transition:transform 0.24s ease;
 
     box-shadow:
-        0 3px 10px rgba(0,0,0,0.35);
+        0 4px 14px rgba(0,0,0,0.34);
 
-    border-radius:0 10px 10px 0;
+    border-radius:0 14px 14px 0;
 
-    overflow:visible;
+    overflow:hidden;
 }
 
 .bookmark.open{
@@ -613,7 +615,7 @@ main{
     transform:translateX(0);
 }
 
-/* FISHTAIL RIBBON END */
+/* RIBBON FISHTAIL */
 
 .bookmark::after{
 
@@ -621,21 +623,42 @@ main{
 
     position:absolute;
 
-    right:-1px;
+    right:0;
 
-    bottom:-1px;
+    bottom:0;
 
     width:0;
 
     height:0;
 
-    border-left:55px solid transparent;
+    border-left:42px solid transparent;
 
-    border-right:55px solid transparent;
+    border-right:42px solid transparent;
 
-    border-top:28px solid var(--bg);
+    border-top:30px solid var(--bg);
 
-    z-index:2;
+    transform:translateX(50%);
+}
+
+/* SLIGHT FABRIC HIGHLIGHT */
+
+.bookmark::before{
+
+    content:'';
+
+    position:absolute;
+
+    inset:0;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255,255,255,0.16),
+            rgba(255,255,255,0.04) 18%,
+            rgba(0,0,0,0.08)
+        );
+
+    pointer-events:none;
 }
 
 .bookmark-handle{
@@ -651,9 +674,9 @@ main{
 
     position:absolute;
 
-    top:24px;
+    top:22px;
 
-    left:118px;
+    left:calc(74vw + 14px);
 
     display:none;
 
