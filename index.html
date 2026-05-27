@@ -401,10 +401,10 @@ main{
 
     margin:0 auto;
 
-    padding:0 24px 120px;
+    padding:0 24px 0;
 }
 
-/* RULING LAYER */
+/* RULING */
 
 .ruling-layer{
 
@@ -430,27 +430,29 @@ main{
     background:rgba(157,153,135,0.18);
 }
 
-/* CELLS LAYER */
+/* CELLS */
 
 .cells-layer{
 
-    position:relative;
+    position:absolute;
+
+    inset:0;
 
     z-index:2;
 }
 
 .note-row{
 
-    position:relative;
+    position:absolute;
 
-    width:100%;
+    left:0;
 
-    height:var(--line-height);
+    right:0;
+
+    height:40px;
 }
 
-/* IMPORTANT:
-   TEXTAREA FLOATS
-   ABOVE RULING */
+/* TEXTAREA */
 
 .note-input{
 
@@ -495,18 +497,21 @@ main{
     z-index:5;
 }
 
-/* EXPANDED CELL
-   COVERS LOWER CELLS */
+/* KEEP RULING VISIBLE */
 
 .note-input.editing{
 
-    background:var(--bg);
+    background:rgba(17,19,15,0.08);
 }
+
+/* CLOSED */
 
 .note-input.closed{
 
     cursor:text;
 }
+
+/* DISABLED */
 
 .note-input.disabled{
 
@@ -1402,6 +1407,9 @@ function createNotebook(
 
     notesWrapper.innerHTML = '';
 
+    notesWrapper.style.height =
+        totalHeight + 'px';
+
     const rulingLayer =
         document.createElement('div');
 
@@ -1417,12 +1425,9 @@ function createNotebook(
     const lineCount =
         Math.ceil(
             totalHeight / 40
-        ) + 80;
+        );
 
-    notesWrapper.style.height =
-        (lineCount * 40) + 'px';
-
-    /* CREATE STATIC RULING */
+    /* RULING */
 
     for(
         let i=0;
@@ -1443,7 +1448,7 @@ function createNotebook(
 
     }
 
-    /* CREATE FLOATING CELLS */
+    /* CELLS */
 
     for(
         let i=0;
@@ -1456,6 +1461,9 @@ function createNotebook(
 
         row.className =
             'note-row';
+
+        row.style.top =
+            (i * 40) + 'px';
 
         const input =
             document.createElement('textarea');
@@ -1474,9 +1482,6 @@ function createNotebook(
 
         input.value =
             savedNotes[i] || '';
-
-        row.style.top =
-            (i * 40) + 'px';
 
         autoResize(input);
 
