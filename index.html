@@ -80,8 +80,6 @@ body{
     touch-action:pan-y;
 }
 
-/* VIEWPORT */
-
 .viewport{
 
     position:fixed;
@@ -184,8 +182,6 @@ button:hover{
 
     font-size:14px;
 }
-
-/* PROGRESS */
 
 .progress-wrapper{
 
@@ -409,17 +405,15 @@ main{
     width:100%;
 }
 
-/* RULING */
-
 .ruling-layer{
 
     position:absolute;
 
     inset:0;
 
-    pointer-events:none;
-
     z-index:1;
+
+    pointer-events:none;
 }
 
 .ruling-line{
@@ -434,8 +428,6 @@ main{
 
     background:rgba(157,153,135,0.18);
 }
-
-/* CELLS */
 
 .cells-layer{
 
@@ -456,8 +448,6 @@ main{
 
     height:40px;
 }
-
-/* INPUT */
 
 .note-input{
 
@@ -502,30 +492,20 @@ main{
     z-index:10;
 }
 
-/* HIGHER CELLS ALWAYS WIN */
+.note-input.closed{
+
+    cursor:text;
+}
 
 .note-input.covered{
 
     pointer-events:none;
 }
 
-/* ACTIVE */
-
 .note-input.editing{
-
-    background:rgba(17,19,15,0.05);
 
     z-index:9999;
 }
-
-/* CLOSED */
-
-.note-input.closed{
-
-    cursor:text;
-}
-
-/* DISABLED */
 
 .note-input.disabled{
 
@@ -937,8 +917,6 @@ function openDatabase(){
 
 }
 
-/* SAVE */
-
 async function saveRecord(record){
 
     const db =
@@ -961,8 +939,6 @@ async function saveRecord(record){
     });
 
 }
-
-/* GET */
 
 async function getAllRecords(){
 
@@ -990,8 +966,6 @@ async function getAllRecords(){
 
 }
 
-/* REMOVE */
-
 async function removeRecord(id){
 
     const db =
@@ -1015,23 +989,17 @@ async function removeRecord(id){
 
 }
 
-/* STATUS */
-
 function setStatus(text){
 
     statusText.textContent =
         text;
 }
 
-/* PROGRESS */
-
 function setProgress(value){
 
     progressBar.style.width =
         value + '%';
 }
-
-/* FONT */
 
 function updateFont(){
 
@@ -1058,8 +1026,6 @@ function updateFont(){
 
 }
 
-/* CLEAN */
-
 function cleanText(text){
 
     return text
@@ -1071,8 +1037,6 @@ function cleanText(text){
         .trim();
 
 }
-
-/* DOMINANT FONT */
 
 function findDominantFontSize(items){
 
@@ -1115,8 +1079,6 @@ function findDominantFontSize(items){
 
 }
 
-/* BOLD */
-
 function isBold(item){
 
     const font =
@@ -1143,8 +1105,6 @@ function isBold(item){
     );
 
 }
-
-/* BUILD BLOCKS */
 
 function buildBlocks(
     items,
@@ -1231,8 +1191,6 @@ function buildBlocks(
     return blocks;
 
 }
-
-/* RENDER */
 
 function renderBlocks(blocks){
 
@@ -1324,12 +1282,7 @@ function updateCoveredCells(){
 
     });
 
-    inputs.forEach((input,index)=>{
-
-        const top =
-            parseInt(
-                input.dataset.line
-            ) * 40;
+    inputs.forEach(input=>{
 
         const height =
             input.offsetHeight;
@@ -1369,8 +1322,6 @@ function updateCoveredCells(){
     });
 
 }
-
-/* SAVE NOTES */
 
 async function saveNotes(){
 
@@ -1416,8 +1367,6 @@ async function saveNotes(){
 
 }
 
-/* ENABLE / DISABLE */
-
 function updateCellAvailability(){
 
     document
@@ -1458,8 +1407,6 @@ function updateCellAvailability(){
     });
 
 }
-
-/* CLOSE INPUT */
 
 async function closeCurrentInput(){
 
@@ -1593,7 +1540,7 @@ function createNotebook(
         /* OPEN */
 
         input.addEventListener(
-            'click',
+            'pointerdown',
             event=>{
 
             event.stopPropagation();
@@ -1605,6 +1552,7 @@ function createNotebook(
             ){
 
                 return;
+
             }
 
             if(
@@ -1631,15 +1579,11 @@ function createNotebook(
 
             updateCellAvailability();
 
-            input.focus();
+            requestAnimationFrame(()=>{
 
-            const length =
-                input.value.length;
+                input.focus();
 
-            input.setSelectionRange(
-                length,
-                length
-            );
+            });
 
         });
 
@@ -1796,8 +1740,6 @@ async function processRecord(record){
     }
 
 }
-
-/* NEW FILE */
 
 async function processNewFile(file){
 
