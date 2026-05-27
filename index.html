@@ -130,6 +130,12 @@ header{
     backdrop-filter:blur(14px);
 
     border-bottom:1px solid var(--border);
+
+    position:sticky;
+
+    top:0;
+
+    z-index:1000;
 }
 
 .header-btn{
@@ -214,7 +220,7 @@ button:hover{
         var(--accent-light)
     );
 
-    transition:width 0.25s ease;
+    transition:width 0.12s linear;
 }
 
 /* FONT */
@@ -226,6 +232,14 @@ button:hover{
     justify-content:flex-end;
 
     padding:12px 16px 0;
+
+    position:sticky;
+
+    top:92px;
+
+    z-index:900;
+
+    pointer-events:none;
 }
 
 .floating{
@@ -233,6 +247,8 @@ button:hover{
     display:none;
 
     position:relative;
+
+    pointer-events:auto;
 }
 
 .fab{
@@ -362,6 +378,12 @@ main{
 }
 
 .notes-header{
+
+    position:sticky;
+
+    top:0;
+
+    z-index:1000;
 
     padding:16px;
 
@@ -504,21 +526,15 @@ main{
     z-index:10;
 }
 
-/* RULING REMAINS VISIBLE */
-
 .note-input.editing{
 
     background:rgba(17,19,15,0.05);
 }
 
-/* CLOSED */
-
 .note-input.closed{
 
     cursor:text;
 }
-
-/* DISABLED */
 
 .note-input.disabled{
 
@@ -526,8 +542,6 @@ main{
 
     opacity:0.7;
 }
-
-/* COVERED CELL FIX */
 
 .note-input.covered{
 
@@ -749,8 +763,6 @@ main{
             class="panel"
             id="readerPanel">
 
-<!-- HEADER -->
-
 <header>
 
     <div class="toolbar">
@@ -762,6 +774,7 @@ main{
         <button id="importBtn" class="header-btn">
             Import
         </button>
+
     </div>
 
     <div class="progress-wrapper">
@@ -774,6 +787,7 @@ main{
     </div>
 
 </header>
+
             <div class="font-row">
 
                 <div
@@ -885,6 +899,7 @@ main{
     </div>
 
 </div>
+
 <!-- IMPORT MODAL -->
 
 <div
@@ -936,7 +951,7 @@ main{
 </div>
 
 <script>
-    
+
 /* PDF */
 
 const pdfjsLib =
@@ -976,7 +991,7 @@ const libraryOverlay =
 
 const libraryList =
     document.getElementById('libraryList');
-    
+
 const importBtn =
     document.getElementById('importBtn');
 
@@ -1151,7 +1166,45 @@ async function removeRecord(id){
 function setProgress(value){
 
     progressBar.style.width =
-        value + '%';
+        Math.min(
+            100,
+            Math.max(0, value)
+        ) + '%';
+
+}
+
+/* SMOOTH LOADING */
+
+function animateProgress(target){
+
+    const current =
+        parseFloat(
+            progressBar.style.width
+        ) || 0;
+
+    if(target <= current){
+        return;
+    }
+
+    let value = current;
+
+    const interval =
+        setInterval(()=>{
+
+        value += 0.6;
+
+        if(value >= target){
+
+            value = target;
+
+            clearInterval(interval);
+
+        }
+
+        setProgress(value);
+
+    }, 14);
+
 }
 
 /* FONT */
@@ -1634,8 +1687,6 @@ function createNotebook(
             totalHeight / 40
         );
 
-    /* RULING */
-
     for(
         let i=0;
         i<lineCount;
@@ -1654,8 +1705,6 @@ function createNotebook(
         rulingLayer.appendChild(line);
 
     }
-
-    /* CELLS */
 
     for(
         let i=0;
@@ -1697,8 +1746,6 @@ function createNotebook(
             updateCoveredCells();
 
         });
-
-        /* OPEN */
 
         input.addEventListener(
             'click',
@@ -1747,8 +1794,6 @@ function createNotebook(
 
         });
 
-        /* INPUT */
-
         input.addEventListener(
             'input',
             ()=>{
@@ -1781,6 +1826,22 @@ function createNotebook(
 
 }
 
+/* YIELD */
+
+function nextFrame(){
+
+    return new Promise(resolve=>{
+
+        requestAnimationFrame(()=>{
+
+            resolve();
+
+        });
+
+    });
+
+}
+
 /* PROCESS */
 
 async function processRecord(record){
@@ -1797,7 +1858,7 @@ async function processRecord(record){
 
         reader.innerHTML = `
             <div class="loading">
-                Processing PDF...
+                Loading PDF...
             </div>
         `;
 
@@ -1806,21 +1867,62 @@ async function processRecord(record){
         const buffer =
             await record.file.arrayBuffer();
 
+        /* STREAMING ENABLED */
+
         const loadingTask =
             pdfjsLib.getDocument({
-                data:buffer
+
+                data:buffer,
+
+                disableStream:false,
+
+                disableAutoFetch:false,
+
+                rangeChunkSize:65536
+
             });
+
+        /* PDF DOWNLOAD PROGRESS */
+
+        loadingTask.onProgress =
+            progressData=>{
+
+            if(
+                progressData.total
+            ){
+
+                const percent =
+                    (
+                        progressData.loaded /
+                        progressData.total
+                    ) * 25;
+
+                animateProgress(percent);
+
+            }
+
+        };
 
         const pdf =
             await loadingTask.promise;
 
         const allItems = [];
 
+        let renderedPages = 0;
+
+        /* CHUNKED PAGE PROCESSING */
+
         for(
             let page=1;
             page<=pdf.numPages;
             page++
         ){
+
+            reader.innerHTML = `
+                <div class="loading">
+                    Processing page ${page} of ${pdf.numPages}...
+                </div>
+            `;
 
             const pdfPage =
                 await pdf.getPage(page);
@@ -1832,25 +1934,41 @@ async function processRecord(record){
                 ...content.items
             );
 
-            setProgress(
+            renderedPages++;
+
+            /* CONSTANT MOVEMENT */
+
+            const progress =
+                25 +
                 (
-                    page /
+                    renderedPages /
                     pdf.numPages
-                ) * 100
-            );
+                ) * 70;
+
+            animateProgress(progress);
+
+            /* GIVE UI TIME TO PAINT */
+
+            await nextFrame();
 
         }
+
+        animateProgress(92);
 
         const dominant =
             findDominantFontSize(
                 allItems
             );
 
+        await nextFrame();
+
         const blocks =
             buildBlocks(
                 allItems,
                 dominant
             );
+
+        animateProgress(97);
 
         renderBlocks(blocks);
 
@@ -1862,6 +1980,14 @@ async function processRecord(record){
             );
 
         });
+
+        animateProgress(100);
+
+        setTimeout(()=>{
+
+            setProgress(0);
+
+        }, 700);
 
         fontControls.style.display =
             'block';
