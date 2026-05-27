@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 
-<meta charset="UTF-8"/>
+<meta charset="UTF-8" />
 
 <meta
     name="viewport"
@@ -11,16 +11,20 @@
 
 <title>AI PDF Mobile Reader</title>
 
-<link rel="manifest" href="manifest.json"/>
+<link rel="manifest" href="manifest.json">
 
 <meta
     name="theme-color"
     content="#11130f"
 />
 
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
 
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link
+    rel="preconnect"
+    href="https://fonts.gstatic.com"
+    crossorigin
+/>
 
 <link
     href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;500;600;700&display=swap"
@@ -70,13 +74,15 @@ body{
     color:var(--text);
 
     font-family:'Source Serif 4', serif;
-}
-
-body{
 
     -webkit-font-smoothing:antialiased;
 
     text-rendering:optimizeLegibility;
+}
+
+body{
+
+    touch-action:pan-y;
 }
 
 /* APP */
@@ -101,7 +107,7 @@ body{
 
     width:100vw;
 
-    min-height:100vh;
+    height:100vh;
 
     overflow-y:auto;
 
@@ -120,13 +126,15 @@ header{
 
     z-index:500;
 
+    width:100%;
+
+    padding:16px;
+
     background:rgba(17,19,15,0.96);
 
     backdrop-filter:blur(14px);
 
     border-bottom:1px solid var(--border);
-
-    padding:16px;
 }
 
 .toolbar{
@@ -138,6 +146,13 @@ header{
     align-items:center;
 
     gap:12px;
+}
+
+input[type="file"]{
+
+    color:var(--muted);
+
+    font-family:inherit;
 }
 
 button{
@@ -162,13 +177,6 @@ button{
 button:hover{
 
     background:var(--accent-light);
-}
-
-input[type="file"]{
-
-    color:var(--muted);
-
-    font-family:inherit;
 }
 
 #status{
@@ -210,7 +218,7 @@ input[type="file"]{
     transition:width 0.25s ease;
 }
 
-/* FONT BUTTON */
+/* FONT BAR */
 
 .font-bar{
 
@@ -254,7 +262,7 @@ input[type="file"]{
 
     right:16px;
 
-    top:145px;
+    top:140px;
 
     width:170px;
 
@@ -292,7 +300,7 @@ input[type="file"]{
 
     background:#2b2e25;
 
-    color:white;
+    color:var(--text);
 
     font-size:16px;
 }
@@ -315,7 +323,7 @@ main{
     padding:12px 24px 120px;
 }
 
-/* PDF */
+/* DOCUMENT */
 
 .section{
 
@@ -344,12 +352,18 @@ main{
     text-align:justify;
 }
 
-/* NOTES */
+/* LOADING */
 
-.notes-page{
+.loading{
 
-    position:relative;
+    text-align:center;
+
+    padding:90px 20px;
+
+    color:var(--muted);
 }
+
+/* NOTES PAGE */
 
 .notes-header{
 
@@ -400,13 +414,15 @@ main{
     padding:0 24px 120px;
 }
 
+/* NOTE ROW */
+
 .note-row{
 
     position:relative;
 
     width:100%;
 
-    min-height:var(--line-height);
+    min-height:40px;
 }
 
 /* RULE */
@@ -437,13 +453,21 @@ main{
     position:relative;
 
     z-index:2;
+
+    width:100%;
 }
+
+/* TEXTAREA */
 
 .note-input{
 
     width:100%;
 
     min-height:40px;
+
+    padding:0;
+
+    margin:0;
 
     border:none;
 
@@ -453,7 +477,7 @@ main{
 
     overflow:hidden;
 
-    background:transparent;
+    background:transparent !important;
 
     color:var(--text);
 
@@ -463,27 +487,31 @@ main{
 
     line-height:40px;
 
-    padding:0;
-
-    margin:0;
+    white-space:pre-wrap;
 
     display:block;
 
-    white-space:pre-wrap;
+    position:relative;
+
+    z-index:2;
 
     caret-color:var(--accent-light);
 }
+
+/* CLOSED */
 
 .note-input.closed{
 
     cursor:text;
 }
 
+/* DISABLED */
+
 .note-input.disabled{
 
     pointer-events:none;
 
-    opacity:0.55;
+    opacity:0.6;
 }
 
 /* LIBRARY */
@@ -546,9 +574,9 @@ main{
 
     display:flex;
 
-    justify-content:space-between;
-
     align-items:center;
+
+    justify-content:space-between;
 
     gap:14px;
 
@@ -587,23 +615,14 @@ main{
     font-size:18px;
 }
 
-/* LOADING */
-
-.loading{
-
-    padding:90px 20px;
-
-    text-align:center;
-
-    color:var(--muted);
-}
-
 </style>
 </head>
 
 <body>
 
-<div class="app" id="app">
+<div
+    class="app"
+    id="app">
 
     <!-- PDF PAGE -->
 
@@ -702,7 +721,7 @@ main{
     <!-- NOTES PAGE -->
 
     <section
-        class="page notes-page"
+        class="page"
         id="notesPage">
 
         <div class="notes-header">
@@ -766,17 +785,17 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
 const app =
     document.getElementById('app');
 
-const reader =
-    document.getElementById('reader');
-
-const notesWrapper =
-    document.getElementById('notesWrapper');
-
 const pdfPage =
     document.getElementById('pdfPage');
 
 const notesPage =
     document.getElementById('notesPage');
+
+const reader =
+    document.getElementById('reader');
+
+const notesWrapper =
+    document.getElementById('notesWrapper');
 
 const pdfFile =
     document.getElementById('pdfFile');
@@ -824,7 +843,7 @@ const STORE =
 
 let currentDocId = null;
 
-let currentFontSize = 1;
+let currentFontSize = 1.00;
 
 let activeInput = null;
 
@@ -874,6 +893,8 @@ function openDB(){
 
 }
 
+/* SAVE DOC */
+
 async function saveDocument(doc){
 
     const db =
@@ -896,6 +917,8 @@ async function saveDocument(doc){
     });
 
 }
+
+/* GET DOCS */
 
 async function getAllDocuments(){
 
@@ -922,6 +945,8 @@ async function getAllDocuments(){
     });
 
 }
+
+/* DELETE DOC */
 
 async function deleteDocument(id){
 
@@ -954,10 +979,12 @@ function setStatus(text){
         text;
 }
 
-function setProgress(value){
+/* PROGRESS */
+
+function setProgress(percent){
 
     progressBar.style.width =
-        value + '%';
+        percent + '%';
 }
 
 /* FONT */
@@ -966,21 +993,21 @@ function updateFont(){
 
     document
         .querySelectorAll('.section')
-        .forEach(el=>{
+        .forEach(section=>{
 
-            el.style.fontSize =
-                currentFontSize + 'rem';
+        section.style.fontSize =
+            currentFontSize + 'rem';
 
-        });
+    });
 
     document
         .querySelectorAll('.note-input')
-        .forEach(el=>{
+        .forEach(input=>{
 
-            el.style.fontSize =
-                currentFontSize + 'rem';
+        input.style.fontSize =
+            currentFontSize + 'rem';
 
-        });
+    });
 
     fontSizeDisplay.textContent =
         currentFontSize.toFixed(2) + 'x';
@@ -991,12 +1018,15 @@ function updateFont(){
 function cleanText(text){
 
     return text
+
         .replace(/\s+/g,' ')
+
         .replace(/-\s+/g,'')
+
         .trim();
 }
 
-/* BUILD BLOCKS */
+/* BUILD */
 
 function buildBlocks(items){
 
@@ -1020,9 +1050,12 @@ function buildBlocks(items){
             /[.!?]$/.test(text)
         ){
 
-            blocks.push(current);
+            blocks.push(
+                current
+            );
 
             current = '';
+
         }
 
     });
@@ -1030,7 +1063,7 @@ function buildBlocks(items){
     return blocks;
 }
 
-/* RENDER PDF */
+/* RENDER */
 
 function renderBlocks(blocks){
 
@@ -1073,7 +1106,7 @@ function autoResize(el){
         el.scrollHeight + 'px';
 }
 
-/* UPDATE CELL LOCKS */
+/* UPDATE AVAILABILITY */
 
 function updateCellAvailability(){
 
@@ -1102,147 +1135,6 @@ function updateCellAvailability(){
     });
 
 }
-
-/* CREATE NOTEBOOK */
-
-function createNotebook(
-    height,
-    notes={}
-){
-
-    notesWrapper.innerHTML = '';
-
-    const count =
-        Math.ceil(
-            height / 40
-        ) + 80;
-
-    for(
-        let i=0;
-        i<count;
-        i++
-    ){
-
-        const row =
-            document.createElement('div');
-
-        row.className =
-            'note-row';
-
-        const rule =
-            document.createElement('div');
-
-        rule.className =
-            'note-rule';
-
-        const cell =
-            document.createElement('div');
-
-        cell.className =
-            'note-cell';
-
-        const input =
-            document.createElement('textarea');
-
-        input.className =
-            'note-input closed';
-
-        input.dataset.line =
-            i;
-
-        input.readOnly =
-            true;
-
-        input.value =
-            notes[i] || '';
-
-        autoResize(input);
-
-        /* OPEN */
-
-        input.addEventListener(
-            'click',
-            e=>{
-
-            e.stopPropagation();
-
-            if(
-                activeInput
-                &&
-                activeInput !== input
-            ){
-
-                return;
-            }
-
-            activeInput =
-                input;
-
-            input.readOnly =
-                false;
-
-            input.focus();
-
-            input.classList.remove(
-                'closed'
-            );
-
-            updateCellAvailability();
-
-        });
-
-        /* INPUT */
-
-        input.addEventListener(
-            'input',
-            ()=>{
-
-            autoResize(input);
-
-            saveNotes();
-
-        });
-
-        cell.appendChild(input);
-
-        row.appendChild(rule);
-
-        row.appendChild(cell);
-
-        notesWrapper.appendChild(row);
-
-    }
-
-    updateFont();
-
-}
-
-/* CLOSE ACTIVE */
-
-document.addEventListener(
-    'click',
-    ()=>{
-
-    if(activeInput){
-
-        activeInput.readOnly =
-            true;
-
-        activeInput.classList.add(
-            'closed'
-        );
-
-        activeInput.blur();
-
-        activeInput = null;
-
-        updateCellAvailability();
-
-        saveNotes();
-
-    }
-
-});
 
 /* SAVE NOTES */
 
@@ -1288,6 +1180,167 @@ async function saveNotes(){
 
 }
 
+/* NOTEBOOK */
+
+function createNotebook(
+    totalHeight,
+    savedNotes={}
+){
+
+    notesWrapper.innerHTML = '';
+
+    const lineCount =
+        Math.ceil(
+            totalHeight / 40
+        ) + 80;
+
+    for(
+        let i=0;
+        i<lineCount;
+        i++
+    ){
+
+        const row =
+            document.createElement('div');
+
+        row.className =
+            'note-row';
+
+        const rule =
+            document.createElement('div');
+
+        rule.className =
+            'note-rule';
+
+        const cell =
+            document.createElement('div');
+
+        cell.className =
+            'note-cell';
+
+        const input =
+            document.createElement('textarea');
+
+        input.className =
+            'note-input closed';
+
+        input.dataset.line =
+            i;
+
+        input.readOnly =
+            true;
+
+        input.spellcheck =
+            false;
+
+        input.value =
+            savedNotes[i] || '';
+
+        autoResize(input);
+
+        /* OPEN */
+
+        input.addEventListener(
+            'click',
+            event=>{
+
+            event.stopPropagation();
+
+            if(
+                activeInput
+                &&
+                activeInput !== input
+            ){
+
+                return;
+            }
+
+            activeInput =
+                input;
+
+            input.readOnly =
+                false;
+
+            input.classList.remove(
+                'closed'
+            );
+
+            updateCellAvailability();
+
+            input.focus();
+
+            const length =
+                input.value.length;
+
+            input.setSelectionRange(
+                length,
+                length
+            );
+
+        });
+
+        /* INPUT */
+
+        input.addEventListener(
+            'input',
+            ()=>{
+
+            autoResize(input);
+
+            saveNotes();
+
+        });
+
+        cell.appendChild(input);
+
+        row.appendChild(rule);
+
+        row.appendChild(cell);
+
+        notesWrapper.appendChild(row);
+
+    }
+
+    updateFont();
+
+}
+
+/* CLOSE ACTIVE CELL */
+
+document.addEventListener(
+    'click',
+    event=>{
+
+    if(
+        event.target.classList.contains(
+            'note-input'
+        )
+    ){
+
+        return;
+    }
+
+    if(activeInput){
+
+        activeInput.readOnly =
+            true;
+
+        activeInput.classList.add(
+            'closed'
+        );
+
+        activeInput.blur();
+
+        saveNotes();
+
+        activeInput = null;
+
+        updateCellAvailability();
+
+    }
+
+});
+
 /* PROCESS PDF */
 
 async function processPdf(
@@ -1303,8 +1356,11 @@ async function processPdf(
             ||
             crypto.randomUUID();
 
-        reader.innerHTML =
-            '<div class="loading">Processing PDF...</div>';
+        reader.innerHTML = `
+            <div class="loading">
+                Processing PDF...
+            </div>
+        `;
 
         setStatus(
             'Loading PDF...'
@@ -1381,7 +1437,9 @@ async function processPdf(
             currentDocId
         );
 
-        setStatus('Complete');
+        setStatus(
+            'Complete'
+        );
 
         setProgress(100);
 
@@ -1391,13 +1449,16 @@ async function processPdf(
 
         setStatus('Error');
 
-        reader.innerHTML =
-            '<div class="loading">Error processing PDF.</div>';
+        reader.innerHTML = `
+            <div class="loading">
+                Error processing PDF.
+            </div>
+        `;
     }
 
 }
 
-/* EXTRACT */
+/* PROCESS BUTTON */
 
 processBtn.addEventListener(
     'click',
@@ -1435,8 +1496,11 @@ libraryBtn.addEventListener(
 
     if(!docs.length){
 
-        libraryList.innerHTML =
-            '<div class="loading">No saved PDFs.</div>';
+        libraryList.innerHTML = `
+            <div class="loading">
+                No saved PDFs.
+            </div>
+        `;
 
         return;
     }
