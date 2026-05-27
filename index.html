@@ -393,6 +393,8 @@ main{
 
 .notes-wrapper{
 
+    position:relative;
+
     width:100%;
 
     max-width:860px;
@@ -402,22 +404,61 @@ main{
     padding:0 24px 120px;
 }
 
+/* RULING LAYER */
+
+.ruling-layer{
+
+    position:absolute;
+
+    inset:0;
+
+    pointer-events:none;
+
+    z-index:1;
+}
+
+.ruling-line{
+
+    position:absolute;
+
+    left:0;
+
+    right:0;
+
+    height:1px;
+
+    background:rgba(157,153,135,0.18);
+}
+
+/* CELLS LAYER */
+
+.cells-layer{
+
+    position:relative;
+
+    z-index:2;
+}
+
 .note-row{
 
     position:relative;
 
     width:100%;
 
-    min-height:var(--line-height);
-
-    border-bottom:1px solid rgba(157,153,135,0.18);
+    height:var(--line-height);
 }
 
 /* IMPORTANT:
-   THE RULE REMAINS VISIBLE
-   UNDER THE TEXT */
+   TEXTAREA FLOATS
+   ABOVE RULING */
 
 .note-input{
+
+    position:absolute;
+
+    top:0;
+
+    left:0;
 
     width:100%;
 
@@ -451,43 +492,21 @@ main{
 
     caret-color:var(--accent-light);
 
-    position:relative;
+    z-index:5;
+}
 
-    z-index:2;
+/* EXPANDED CELL
+   COVERS LOWER CELLS */
+
+.note-input.editing{
+
+    background:var(--bg);
 }
 
 .note-input.closed{
 
     cursor:text;
 }
-
-.note-input.editing{
-
-    background:transparent;
-}
-
-.note-row::after{
-
-    content:'';
-
-    position:absolute;
-
-    left:0;
-
-    right:0;
-
-    bottom:-1px;
-
-    height:1px;
-
-    background:rgba(157,153,135,0.18);
-
-    z-index:1;
-
-    pointer-events:none;
-}
-
-/* DISABLED CELLS */
 
 .note-input.disabled{
 
@@ -1363,6 +1382,9 @@ async function closeCurrentInput(){
         'closed'
     );
 
+    activeInput.style.zIndex =
+        '5';
+
     await saveNotes();
 
     activeInput = null;
@@ -1380,10 +1402,48 @@ function createNotebook(
 
     notesWrapper.innerHTML = '';
 
+    const rulingLayer =
+        document.createElement('div');
+
+    rulingLayer.className =
+        'ruling-layer';
+
+    const cellsLayer =
+        document.createElement('div');
+
+    cellsLayer.className =
+        'cells-layer';
+
     const lineCount =
         Math.ceil(
             totalHeight / 40
         ) + 80;
+
+    notesWrapper.style.height =
+        (lineCount * 40) + 'px';
+
+    /* CREATE STATIC RULING */
+
+    for(
+        let i=0;
+        i<lineCount;
+        i++
+    ){
+
+        const line =
+            document.createElement('div');
+
+        line.className =
+            'ruling-line';
+
+        line.style.top =
+            ((i + 1) * 40) - 1 + 'px';
+
+        rulingLayer.appendChild(line);
+
+    }
+
+    /* CREATE FLOATING CELLS */
 
     for(
         let i=0;
@@ -1415,6 +1475,9 @@ function createNotebook(
         input.value =
             savedNotes[i] || '';
 
+        row.style.top =
+            (i * 40) + 'px';
+
         autoResize(input);
 
         /* OPEN */
@@ -1424,10 +1487,6 @@ function createNotebook(
             event=>{
 
             event.stopPropagation();
-
-            /* DO NOT OPEN
-               NEW CELL IF
-               ANOTHER IS OPEN */
 
             if(
                 activeInput
@@ -1448,6 +1507,9 @@ function createNotebook(
             input.classList.add(
                 'editing'
             );
+
+            input.style.zIndex =
+                '999';
 
             activeInput = input;
 
@@ -1477,9 +1539,17 @@ function createNotebook(
 
         row.appendChild(input);
 
-        notesWrapper.appendChild(row);
+        cellsLayer.appendChild(row);
 
     }
+
+    notesWrapper.appendChild(
+        rulingLayer
+    );
+
+    notesWrapper.appendChild(
+        cellsLayer
+    );
 
     updateFont();
 
