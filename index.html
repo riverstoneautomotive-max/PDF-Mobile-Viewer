@@ -130,6 +130,12 @@ header{
     backdrop-filter:blur(14px);
 
     border-bottom:1px solid var(--border);
+
+    position:sticky;
+
+    top:0;
+
+    z-index:2000;
 }
 
 .header-btn{
@@ -228,6 +234,14 @@ button:hover{
     justify-content:flex-end;
 
     padding:12px 16px 0;
+
+    position:sticky;
+
+    top:98px;
+
+    z-index:1800;
+
+    pointer-events:none;
 }
 
 .floating{
@@ -235,6 +249,8 @@ button:hover{
     display:none;
 
     position:relative;
+
+    pointer-events:auto;
 }
 
 .fab{
@@ -316,6 +332,8 @@ main{
     margin:0 auto;
 
     padding:0 24px 120px;
+
+    position:relative;
 }
 
 .section{
@@ -403,6 +421,12 @@ main{
     background:rgba(17,19,15,0.96);
 
     backdrop-filter:blur(14px);
+
+    position:sticky;
+
+    top:0;
+
+    z-index:2000;
 }
 
 .copy-btn{
@@ -561,6 +585,127 @@ main{
 .note-input.covered{
 
     pointer-events:none;
+}
+
+/* BOOKMARKS */
+
+.bookmark-layer{
+
+    position:absolute;
+
+    top:0;
+
+    left:0;
+
+    width:100%;
+
+    height:100%;
+
+    pointer-events:none;
+
+    z-index:1200;
+}
+
+.bookmark{
+
+    position:absolute;
+
+    left:0;
+
+    width:78px;
+
+    height:18px;
+
+    border-radius:0 10px 10px 0;
+
+    pointer-events:auto;
+
+    touch-action:none;
+
+    transition:transform 0.18s ease;
+}
+
+.bookmark::before{
+
+    content:'';
+
+    position:absolute;
+
+    left:-10px;
+
+    top:0;
+
+    width:18px;
+
+    height:18px;
+
+    clip-path:polygon(
+        100% 0,
+        100% 100%,
+        0 50%
+    );
+
+    background:inherit;
+}
+
+.bookmark::after{
+
+    content:'';
+
+    position:absolute;
+
+    right:-10px;
+
+    top:0;
+
+    width:18px;
+
+    height:18px;
+
+    clip-path:polygon(
+        0 0,
+        100% 50%,
+        0 100%
+    );
+
+    background:inherit;
+}
+
+.bookmark:hover{
+
+    transform:translateX(4px);
+}
+
+.bookmark-color-picker{
+
+    position:fixed;
+
+    display:none;
+
+    gap:12px;
+
+    background:#1a1c17;
+
+    border:1px solid var(--border);
+
+    border-radius:18px;
+
+    padding:14px;
+
+    z-index:7000;
+}
+
+.color-choice{
+
+    width:28px;
+
+    height:28px;
+
+    border-radius:999px;
+
+    border:2px solid rgba(255,255,255,0.18);
+
+    cursor:pointer;
 }
 
 /* LIBRARY */
@@ -845,7 +990,12 @@ main{
 
             </div>
 
-            <main>
+            <main id="readerMain">
+
+                <div
+                    class="bookmark-layer"
+                    id="bookmarkLayer">
+                </div>
 
                 <section id="reader">
 
@@ -884,6 +1034,13 @@ main{
 
     </div>
 
+</div>
+
+<!-- BOOKMARK COLOR PICKER -->
+
+<div
+    class="bookmark-color-picker"
+    id="bookmarkColorPicker">
 </div>
 
 <!-- LIBRARY -->
@@ -1031,6 +1188,12 @@ const fontToggle =
 const fontSizeDisplay =
     document.getElementById('fontSizeDisplay');
 
+const bookmarkLayer =
+    document.getElementById('bookmarkLayer');
+
+const bookmarkColorPicker =
+    document.getElementById('bookmarkColorPicker');
+
 /* STORAGE */
 
 const DB_NAME =
@@ -1051,6 +1214,38 @@ let currentFontSize = 1.00;
 let showingNotes = false;
 
 let activeInput = null;
+
+let bookmarks = [];
+
+let bookmarkCounter = 0;
+
+let swipeStartX = 0;
+
+let swipeStartY = 0;
+
+let swipeTargetBookmark = null;
+
+/* COLORS */
+
+const BOOKMARK_COLORS = [
+
+    '#9d9162',
+
+    '#b25d54',
+
+    '#5d7ab2',
+
+    '#4e9b74',
+
+    '#a05db2',
+
+    '#d59a42',
+
+    '#c94f7c',
+
+    '#5f8f96'
+
+];
 
 /* DATABASE */
 
@@ -1350,53 +1545,6 @@ function buildInlineParts(items){
 
 /* SMART LINK DETECTION */
 
-function normalizeBrokenUrl(text){
-
-    let result = '';
-
-    let visibleCount = 0;
-
-    for(
-        let i = 0;
-        i < text.length;
-        i++
-    ){
-
-        const char =
-            text[i];
-
-        if(
-            visibleCount < 7
-            &&
-            (
-                char === ' '
-                ||
-                char === '\n'
-            )
-        ){
-
-            continue;
-
-        }
-
-        result += char;
-
-        if(
-            char !== ' '
-            &&
-            char !== '\n'
-        ){
-
-            visibleCount++;
-
-        }
-
-    }
-
-    return result;
-
-}
-
 function extractLinks(text){
 
     const links = [];
@@ -1431,9 +1579,6 @@ function extractLinks(text){
                 ||
                 char === '\t';
 
-            /* FIRST 8 VISIBLE URL CHARS:
-               ignore whitespace entirely */
-
             if(
                 visibleChars < 8
                 &&
@@ -1446,9 +1591,6 @@ function extractLinks(text){
 
             }
 
-            /* AFTER 8 CHARS:
-               whitespace ENDS url */
-
             if(
                 visibleChars >= 8
                 &&
@@ -1458,8 +1600,6 @@ function extractLinks(text){
                 break;
 
             }
-
-            /* HARD TERMINATORS */
 
             if(
                 char === ')'
@@ -1900,9 +2040,9 @@ function updateCoveredCells(){
 
 }
 
-/* SAVE NOTES */
+/* SAVE NOTES + BOOKMARKS */
 
-async function saveNotes(){
+async function saveDocumentState(){
 
     if(!currentPdfId){
         return;
@@ -1941,6 +2081,9 @@ async function saveNotes(){
 
     record.notes =
         notes;
+
+    record.bookmarks =
+        bookmarks;
 
     await saveRecord(record);
 
@@ -1999,7 +2142,7 @@ async function closeCurrentInput(){
     activeInput.style.zIndex =
         '5';
 
-    await saveNotes();
+    await saveDocumentState();
 
     activeInput = null;
 
@@ -2044,8 +2187,6 @@ function createNotebook(
             totalHeight / 40
         );
 
-    /* RULING */
-
     for(
         let i=0;
         i<lineCount;
@@ -2064,8 +2205,6 @@ function createNotebook(
         rulingLayer.appendChild(line);
 
     }
-
-    /* CELLS */
 
     for(
         let i=0;
@@ -2107,8 +2246,6 @@ function createNotebook(
             updateCoveredCells();
 
         });
-
-        /* OPEN */
 
         input.addEventListener(
             'click',
@@ -2157,8 +2294,6 @@ function createNotebook(
 
         });
 
-        /* INPUT */
-
         input.addEventListener(
             'input',
             ()=>{
@@ -2191,6 +2326,179 @@ function createNotebook(
 
 }
 
+/* BOOKMARKS */
+
+function renderBookmarks(){
+
+    bookmarkLayer.innerHTML = '';
+
+    bookmarks.forEach(bookmark=>{
+
+        const element =
+            document.createElement('div');
+
+        element.className =
+            'bookmark';
+
+        element.dataset.id =
+            bookmark.id;
+
+        element.style.top =
+            bookmark.y + 'px';
+
+        element.style.background =
+            bookmark.color;
+
+        let holdTimer = null;
+
+        element.addEventListener(
+            'touchstart',
+            event=>{
+
+            swipeTargetBookmark =
+                bookmark.id;
+
+            swipeStartX =
+                event.touches[0].clientX;
+
+            swipeStartY =
+                event.touches[0].clientY;
+
+            holdTimer =
+                setTimeout(()=>{
+
+                openBookmarkColorPicker(
+                    bookmark,
+                    event.touches[0].clientX,
+                    event.touches[0].clientY
+                );
+
+            },500);
+
+        });
+
+        element.addEventListener(
+            'touchmove',
+            ()=>{
+
+            clearTimeout(holdTimer);
+
+        });
+
+        element.addEventListener(
+            'touchend',
+            async event=>{
+
+            clearTimeout(holdTimer);
+
+            const endX =
+                event.changedTouches[0].clientX;
+
+            const diffX =
+                endX - swipeStartX;
+
+            if(diffX < -60){
+
+                bookmarks =
+                    bookmarks.filter(
+                        item=>
+                        item.id !== bookmark.id
+                    );
+
+                renderBookmarks();
+
+                await saveDocumentState();
+
+            }
+
+        });
+
+        bookmarkLayer.appendChild(
+            element
+        );
+
+    });
+
+}
+
+function openBookmarkColorPicker(
+    bookmark,
+    x,
+    y
+){
+
+    bookmarkColorPicker.innerHTML =
+        '';
+
+    BOOKMARK_COLORS.forEach(color=>{
+
+        const choice =
+            document.createElement('div');
+
+        choice.className =
+            'color-choice';
+
+        choice.style.background =
+            color;
+
+        choice.addEventListener(
+            'click',
+            async ()=>{
+
+            bookmark.color =
+                color;
+
+            renderBookmarks();
+
+            bookmarkColorPicker.style.display =
+                'none';
+
+            await saveDocumentState();
+
+        });
+
+        bookmarkColorPicker.appendChild(
+            choice
+        );
+
+    });
+
+    bookmarkColorPicker.style.left =
+        x + 'px';
+
+    bookmarkColorPicker.style.top =
+        y + 'px';
+
+    bookmarkColorPicker.style.display =
+        'flex';
+
+}
+
+async function createBookmark(y){
+
+    bookmarks.push({
+
+        id:
+            'bookmark-' +
+            bookmarkCounter++,
+
+        y,
+
+        color:
+            getComputedStyle(
+                document.documentElement
+            ).getPropertyValue(
+                '--accent'
+            ).trim()
+
+    });
+
+    renderBookmarks();
+
+    await saveDocumentState();
+
+}
+
 /* PROCESS */
 
 async function processRecord(record){
@@ -2199,6 +2507,12 @@ async function processRecord(record){
 
         currentPdfId =
             record.id;
+
+        bookmarks =
+            record.bookmarks || [];
+
+        bookmarkCounter =
+            bookmarks.length;
 
         localStorage.setItem(
             LAST_KEY,
@@ -2271,6 +2585,8 @@ async function processRecord(record){
                 record.notes || {}
             );
 
+            renderBookmarks();
+
         });
 
         fontControls.style.display =
@@ -2337,6 +2653,8 @@ async function processNewFile(file){
         file,
 
         notes:{},
+
+        bookmarks:[],
 
         created:
             Date.now()
@@ -2574,7 +2892,7 @@ pdfFile.addEventListener(
 
 });
 
-/* SWIPE */
+/* NOTES */
 
 function openNotes(){
 
@@ -2600,25 +2918,28 @@ function closeNotes(){
 
 }
 
-let startX = 0;
-
-let startY = 0;
+/* GLOBAL SWIPE */
 
 document.addEventListener(
     'touchstart',
     event=>{
 
-    startX =
+    swipeStartX =
         event.touches[0].clientX;
 
-    startY =
+    swipeStartY =
         event.touches[0].clientY;
+
+    swipeTargetBookmark =
+        event.target.closest(
+            '.bookmark'
+        );
 
 });
 
 document.addEventListener(
     'touchend',
-    event=>{
+    async event=>{
 
     const endX =
         event.changedTouches[0].clientX;
@@ -2627,21 +2948,59 @@ document.addEventListener(
         event.changedTouches[0].clientY;
 
     const diffX =
-        endX - startX;
+        endX - swipeStartX;
 
     const diffY =
         Math.abs(
-            endY - startY
+            endY - swipeStartY
         );
 
     if(diffY > 80){
         return;
     }
 
+    /* BOOKMARK CREATION */
+
+    if(
+
+        diffX > 90
+
+        &&
+
+        !showingNotes
+
+        &&
+
+        !swipeTargetBookmark
+
+        &&
+
+        swipeStartX < 36
+
+    ){
+
+        const scrollY =
+            readerPanel.scrollTop;
+
+        const y =
+            scrollY +
+            swipeStartY -
+            20;
+
+        await createBookmark(y);
+
+        return;
+
+    }
+
+    /* NORMAL NOTES OPEN */
+
     if(
         diffX < -90
         &&
         !showingNotes
+        &&
+        !swipeTargetBookmark
     ){
 
         openNotes();
@@ -2674,6 +3033,17 @@ document.addEventListener(
     if(!clickedInput){
 
         await closeCurrentInput();
+
+    }
+
+    if(
+        !event.target.closest(
+            '.bookmark-color-picker'
+        )
+    ){
+
+        bookmarkColorPicker.style.display =
+            'none';
 
     }
 
