@@ -1441,73 +1441,126 @@ function renderBookmarks(){
 
         });
 
-        let longPressTimer =
-            null;
+        let longPressTimer = null;
 
-        handle.addEventListener(
-            'touchstart',
-            event=>{
+let bookmarkStartX = 0;
 
-            event.stopPropagation();
+let bookmarkStartY = 0;
 
-            longPressTimer =
-                setTimeout(()=>{
+let longPressTriggered = false;
 
-                picker.classList.add(
-                    'show'
-                );
+handle.addEventListener(
+    'touchstart',
+    event=>{
 
-            },500);
+    event.stopPropagation();
 
-        });
+    const touch =
+        event.touches[0];
 
-        handle.addEventListener(
-            'touchend',
-            ()=>{
+    bookmarkStartX =
+        touch.clientX;
 
-            clearTimeout(
-                longPressTimer
+    bookmarkStartY =
+        touch.clientY;
+
+    longPressTriggered =
+        false;
+
+    longPressTimer =
+        setTimeout(()=>{
+
+        longPressTriggered =
+            true;
+
+        document
+            .querySelectorAll(
+                '.bookmark-color-picker'
+            )
+            .forEach(el=>{
+
+            el.classList.remove(
+                'show'
             );
 
         });
 
-        let bookmarkStartX =
-            0;
+        picker.classList.add(
+            'show'
+        );
 
-        handle.addEventListener(
-            'touchstart',
-            event=>{
+    },550);
 
-            bookmarkStartX =
-                event.touches[0].clientX;
+});
 
-        });
+handle.addEventListener(
+    'touchmove',
+    event=>{
 
-        handle.addEventListener(
-            'touchend',
-            async event=>{
+    const touch =
+        event.touches[0];
 
-            const endX =
-                event.changedTouches[0].clientX;
+    const moveX =
+        Math.abs(
+            touch.clientX -
+            bookmarkStartX
+        );
 
-            const diffX =
-                endX - bookmarkStartX;
+    const moveY =
+        Math.abs(
+            touch.clientY -
+            bookmarkStartY
+        );
 
-            if(diffX < -60){
+    if(
+        moveX > 12 ||
+        moveY > 12
+    ){
 
-                bookmarks =
-                    bookmarks.filter(
-                        item=>
-                        item.id !== bookmark.id
-                    );
+        clearTimeout(
+            longPressTimer
+        );
 
-                await saveBookmarks();
+    }
 
-                renderBookmarks();
+});
 
-            }
+handle.addEventListener(
+    'touchend',
+    async event=>{
 
-        });
+    clearTimeout(
+        longPressTimer
+    );
+
+    if(longPressTriggered){
+
+        event.preventDefault();
+
+        return;
+    }
+
+    const endX =
+        event.changedTouches[0].clientX;
+
+    const diffX =
+        endX - bookmarkStartX;
+
+    if(diffX < -60){
+
+        bookmarks =
+            bookmarks.filter(
+                item=>
+                item.id !== bookmark.id
+            );
+
+        await saveBookmarks();
+
+        renderBookmarks();
+
+    }
+
+});
 
         element.appendChild(handle);
 
@@ -3052,7 +3105,7 @@ document.addEventListener(
 /* CLICK OUTSIDE */
 
 document.addEventListener(
-    'click',
+    'pointerdown',
     async event=>{
 
     const clickedInput =
@@ -3066,6 +3119,11 @@ document.addEventListener(
 
     }
 
+    const insideBookmark =
+        event.target.closest(
+            '.bookmark'
+        );
+
     document
         .querySelectorAll(
             '.bookmark-color-picker'
@@ -3073,9 +3131,9 @@ document.addEventListener(
         .forEach(picker=>{
 
         if(
-            !picker.contains(
-                event.target
-            )
+            !picker.contains(event.target)
+            &&
+            !insideBookmark
         ){
 
             picker.classList.remove(
