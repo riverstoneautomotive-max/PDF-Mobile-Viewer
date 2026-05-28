@@ -579,9 +579,14 @@ main{
 
     inset:0;
 
-    pointer-events:none;
+    pointer-events:auto;
 
     z-index:150;
+}
+
+.bookmark-layer *{
+
+    pointer-events:auto;
 }
 
 .bookmark{
@@ -1443,11 +1448,9 @@ function renderBookmarks(){
 
         let longPressTimer = null;
 
-let bookmarkStartX = 0;
-
-let bookmarkStartY = 0;
-
 let longPressTriggered = false;
+
+let startX = 0;
 
 handle.addEventListener(
     'touchstart',
@@ -1455,17 +1458,15 @@ handle.addEventListener(
 
     event.stopPropagation();
 
-    const touch =
-        event.touches[0];
-
-    bookmarkStartX =
-        touch.clientX;
-
-    bookmarkStartY =
-        touch.clientY;
+    startX =
+        event.touches[0].clientX;
 
     longPressTriggered =
         false;
+
+    clearTimeout(
+        longPressTimer
+    );
 
     longPressTimer =
         setTimeout(()=>{
@@ -1489,40 +1490,24 @@ handle.addEventListener(
             'show'
         );
 
-    },550);
+    },600);
 
+},
+{
+    passive:true
 });
 
 handle.addEventListener(
     'touchmove',
-    event=>{
+    ()=>{
 
-    const touch =
-        event.touches[0];
+    clearTimeout(
+        longPressTimer
+    );
 
-    const moveX =
-        Math.abs(
-            touch.clientX -
-            bookmarkStartX
-        );
-
-    const moveY =
-        Math.abs(
-            touch.clientY -
-            bookmarkStartY
-        );
-
-    if(
-        moveX > 12 ||
-        moveY > 12
-    ){
-
-        clearTimeout(
-            longPressTimer
-        );
-
-    }
-
+},
+{
+    passive:true
 });
 
 handle.addEventListener(
@@ -1534,9 +1519,6 @@ handle.addEventListener(
     );
 
     if(longPressTriggered){
-
-        event.preventDefault();
-
         return;
     }
 
@@ -1544,7 +1526,7 @@ handle.addEventListener(
         event.changedTouches[0].clientX;
 
     const diffX =
-        endX - bookmarkStartX;
+        endX - startX;
 
     if(diffX < -60){
 
@@ -1560,6 +1542,9 @@ handle.addEventListener(
 
     }
 
+},
+{
+    passive:true
 });
 
         element.appendChild(handle);
